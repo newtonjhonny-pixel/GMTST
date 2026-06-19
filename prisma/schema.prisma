@@ -1,0 +1,752 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== AUTH ====================
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  role          UserRole  @default(ANALISTA_TST)
+  ativo         Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  pendencias    Pendencia[]
+  historicos    Historico[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+enum UserRole {
+  ADMINISTRADOR
+  GERENTE
+  COORDENADOR
+  ANALISTA_TST
+  ANALISTA_MEIO_AMBIENTE
+  CONSULTA
+}
+
+// ==================== EMPRESA / UNIDADE ====================
+model Empresa {
+  id                   String      @id @default(cuid())
+  codigo               String      @unique
+  razaoSocial          String
+  cnpj                 String      @unique
+  status               StatusGeral @default(ATIVO)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  unidades             Unidade[]
+  certificacoes        Certificacao[]
+  taxas                Taxa[]
+  documentosLegais     DocumentoLegal[]
+  licencasAmbientais   LicencaAmbiental[]
+  pendencias           Pendencia[]
+  treinamentos         Treinamento[]
+  acidentes            Acidente[]
+  inspecoes            InspecaoSeguranca[]
+  pgrs                 PGR[]
+  pcmsos               PCMSO[]
+  ltcats               LTCAT[]
+  ppps                 PPP[]
+  inventariosRiscos    InventarioRisco[]
+  residuos             ControleResiduo[]
+  produtosQuimicos     ProdutoQuimico[]
+  registrosIBAMA       RegistroIBAMA[]
+  monitoramentos       MonitoramentoAmbiental[]
+}
+
+model Unidade {
+  id                   String      @id @default(cuid())
+  empresaId            String
+  nome                 String
+  cidade               String
+  uf                   String
+  responsavelTST       String?
+  responsavelMeioAmb   String?
+  status               StatusGeral @default(ATIVO)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  empresa              Empresa     @relation(fields: [empresaId], references: [id])
+  colaboradores        Colaborador[]
+  certificacoes        Certificacao[]
+  taxas                Taxa[]
+  documentosLegais     DocumentoLegal[]
+  licencasAmbientais   LicencaAmbiental[]
+  pendencias           Pendencia[]
+  treinamentos         Treinamento[]
+  inspecoes            InspecaoSeguranca[]
+  pgrs                 PGR[]
+  pcmsos               PCMSO[]
+  ltcats               LTCAT[]
+  ppps                 PPP[]
+  inventariosRiscos    InventarioRisco[]
+  residuos             ControleResiduo[]
+  registrosIBAMA       RegistroIBAMA[]
+  monitoramentos       MonitoramentoAmbiental[]
+}
+
+enum StatusGeral {
+  ATIVO
+  INATIVO
+  ARQUIVADO
+}
+
+// ==================== COLABORADOR ====================
+model Colaborador {
+  id            String    @id @default(cuid())
+  nome          String
+  cpf           String    @unique
+  matricula     String?
+  unidadeId     String
+  setor         String
+  funcao        String
+  admissao      DateTime
+  status        StatusColaborador @default(ATIVO)
+  riscos        String[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  unidade       Unidade   @relation(fields: [unidadeId], references: [id])
+  asos          ASO[]
+  epis          EntregaEPI[]
+  treinamentos  ColaboradorTreinamento[]
+  ppps          PPP[]
+}
+
+enum StatusColaborador {
+  ATIVO
+  INATIVO
+  DEMITIDO
+  AFASTADO
+}
+
+// ==================== TST ====================
+model EPI {
+  id          String    @id @default(cuid())
+  nome        String
+  ca          String    @unique
+  tipo        String
+  validade    DateTime?
+  status      StatusGeral @default(ATIVO)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  entregas    EntregaEPI[]
+}
+
+model EntregaEPI {
+  id              String    @id @default(cuid())
+  colaboradorId   String
+  epiId           String
+  dataEntrega     DateTime
+  dataVencimento  DateTime?
+  quantidade      Int       @default(1)
+  anexo           String?
+  observacao      String?
+  createdAt       DateTime  @default(now())
+  colaborador     Colaborador @relation(fields: [colaboradorId], references: [id])
+  epi             EPI         @relation(fields: [epiId], references: [id])
+}
+
+model ASO {
+  id              String    @id @default(cuid())
+  colaboradorId   String
+  tipo            TipoASO
+  dataExame       DateTime
+  dataVencimento  DateTime?
+  resultado       ResultadoASO @default(APTO)
+  medico          String?
+  crm             String?
+  anexo           String?
+  observacao      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  colaborador     Colaborador @relation(fields: [colaboradorId], references: [id])
+}
+
+enum TipoASO {
+  ADMISSIONAL
+  PERIODICO
+  RETORNO
+  MUDANCA_RISCO
+  DEMISSIONAL
+}
+
+enum ResultadoASO {
+  APTO
+  INAPTO
+  APTO_COM_RESTRICAO
+}
+
+model Treinamento {
+  id              String    @id @default(cuid())
+  nome            String
+  tipo            String
+  empresaId       String
+  unidadeId       String
+  dataRealizacao  DateTime
+  dataVencimento  DateTime?
+  cargaHoraria    Float?
+  instrutor       String?
+  anexo           String?
+  observacao      String?
+  status          StatusGeral @default(ATIVO)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+  unidade         Unidade   @relation(fields: [unidadeId], references: [id])
+  colaboradores   ColaboradorTreinamento[]
+}
+
+model ColaboradorTreinamento {
+  id              String      @id @default(cuid())
+  colaboradorId   String
+  treinamentoId   String
+  colaborador     Colaborador @relation(fields: [colaboradorId], references: [id])
+  treinamento     Treinamento @relation(fields: [treinamentoId], references: [id])
+  @@unique([colaboradorId, treinamentoId])
+}
+
+model Acidente {
+  id              String    @id @default(cuid())
+  empresaId       String
+  data            DateTime
+  local           String
+  descricao       String
+  tipologia       TipoAcidente
+  cat             Boolean   @default(false)
+  numeroCat       String?
+  investigacao    String?
+  planoAcao       String?
+  anexo           String?
+  status          StatusAcidente @default(ABERTO)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+}
+
+enum TipoAcidente {
+  TIPICO
+  TRAJETO
+  DOENCA_OCUPACIONAL
+}
+
+enum StatusAcidente {
+  ABERTO
+  EM_INVESTIGACAO
+  CONCLUIDO
+}
+
+model InspecaoSeguranca {
+  id              String    @id @default(cuid())
+  empresaId       String
+  unidadeId       String
+  titulo          String
+  dataInspecao    DateTime
+  responsavel     String
+  resultado       String?
+  naoConformidades String?
+  anexo           String?
+  status          StatusInspecao @default(ABERTA)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+  unidade         Unidade   @relation(fields: [unidadeId], references: [id])
+}
+
+enum StatusInspecao {
+  ABERTA
+  EM_ANDAMENTO
+  CONCLUIDA
+}
+
+// ==================== MEIO AMBIENTE ====================
+model LicencaAmbiental {
+  id              String    @id @default(cuid())
+  empresaId       String
+  unidadeId       String
+  tipo            TipoLicenca
+  orgao           String
+  numero          String?
+  emissao         DateTime?
+  vencimento      DateTime
+  responsavel     String?
+  condicionantes  String?
+  anexo           String?
+  status          StatusDocumento @default(VIGENTE)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+  unidade         Unidade   @relation(fields: [unidadeId], references: [id])
+  itensCondicionantes  Condicionante[]
+}
+
+enum TipoLicenca {
+  LP
+  LI
+  LO
+  LAS
+  OUTORGA
+  CTF_IBAMA
+  AUTORIZACAO
+  OUTRO
+}
+
+model ControleResiduo {
+  id                String    @id @default(cuid())
+  empresaId         String?
+  unidadeId         String?
+  descricao         String
+  codigoIBAMA       String?
+  classeRisco       String?
+  quantidade        Float
+  unidadeMedida     String
+  dataGeracao       DateTime
+  destinacao        String
+  empresaColetora   String?
+  mtr               String?
+  certificadoDest   String?
+  anexo             String?
+  observacao        String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  empresa           Empresa?  @relation(fields: [empresaId], references: [id])
+  unidade           Unidade?  @relation(fields: [unidadeId], references: [id])
+}
+
+model ProdutoQuimico {
+  id          String    @id @default(cuid())
+  empresaId   String?
+  nome        String
+  cas         String?
+  fornecedor  String?
+  fispq       String?
+  riscos      String[]
+  armazenagem String?
+  epi         String[]
+  observacao  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  empresa     Empresa?  @relation(fields: [empresaId], references: [id])
+}
+
+model RelatorioAmbiental {
+  id          String    @id @default(cuid())
+  titulo      String
+  tipo        String
+  periodo     String
+  orgao       String?
+  dataEnvio   DateTime?
+  prazo       DateTime?
+  responsavel String?
+  anexo       String?
+  status      StatusDocumento @default(VIGENTE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Condicionante {
+  id               String           @id @default(cuid())
+  licencaId        String
+  descricao        String
+  prazo            DateTime?
+  periodicidade    String?
+  responsavel      String?
+  evidencia        String?
+  status           StatusCondicionante @default(PENDENTE)
+  observacao       String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  licenca          LicencaAmbiental @relation(fields: [licencaId], references: [id], onDelete: Cascade)
+}
+
+enum StatusCondicionante {
+  PENDENTE
+  EM_DIA
+  ATRASADA
+  CONCLUIDA
+}
+
+model RegistroIBAMA {
+  id                String    @id @default(cuid())
+  empresaId         String
+  unidadeId         String?
+  numeroCTF         String?
+  certificadoReg    String?
+  validadeCR        DateTime?
+  periodoRAPP       String?
+  dataEnvioRAPP     DateTime?
+  protocolo         String?
+  responsavel       String?
+  observacao        String?
+  status            StatusDocumento @default(VIGENTE)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  empresa           Empresa   @relation(fields: [empresaId], references: [id])
+  unidade           Unidade?  @relation(fields: [unidadeId], references: [id])
+}
+
+model MonitoramentoAmbiental {
+  id              String              @id @default(cuid())
+  empresaId       String
+  unidadeId       String
+  tipo            TipoMonitoramento
+  parametro       String
+  resultado       String?
+  unidadeMedida   String?
+  limitePermitido String?
+  conformidade    Boolean?
+  dataColeta      DateTime
+  dataProxima     DateTime?
+  laboratorio     String?
+  responsavel     String?
+  anexo           String?
+  observacao      String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  empresa         Empresa             @relation(fields: [empresaId], references: [id])
+  unidade         Unidade             @relation(fields: [unidadeId], references: [id])
+}
+
+enum TipoMonitoramento {
+  EFLUENTE_LIQUIDO
+  EMISSAO_ATMOSFERICA
+  RUIDO_AMBIENTAL
+  AGUA_SUBTERRANEA
+  SOLO
+  OUTRO
+}
+
+enum StatusDocumento {
+  VIGENTE
+  VENCIDO
+  A_VENCER
+  CANCELADO
+  ARQUIVADO
+}
+
+// ==================== CERTIFICACOES ====================
+model Certificacao {
+  id              String    @id @default(cuid())
+  tipo            String
+  orgaoCertificador String
+  empresaId       String
+  unidadeId       String
+  emissao         DateTime?
+  vencimento      DateTime
+  responsavel     String?
+  anexo           String?
+  alertaDias      Int       @default(30)
+  status          StatusDocumento @default(VIGENTE)
+  observacao      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+  unidade         Unidade   @relation(fields: [unidadeId], references: [id])
+}
+
+// ==================== TAXAS ====================
+model Taxa {
+  id              String    @id @default(cuid())
+  tipo            String
+  orgao           String
+  empresaId       String
+  unidadeId       String
+  competencia     String?
+  vencimento      DateTime
+  valor           Decimal?
+  status          StatusTaxa @default(PENDENTE)
+  comprovante     String?
+  responsavel     String?
+  observacao      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+  unidade         Unidade   @relation(fields: [unidadeId], references: [id])
+}
+
+enum StatusTaxa {
+  PENDENTE
+  PAGO
+  VENCIDO
+  CANCELADO
+}
+
+// ==================== DOCUMENTOS LEGAIS ====================
+model DocumentoLegal {
+  id              String    @id @default(cuid())
+  nome            String
+  tipo            TipoDocumentoLegal
+  empresaId       String
+  unidadeId       String
+  emissao         DateTime?
+  vencimento      DateTime?
+  responsavel     String?
+  anexo           String?
+  status          StatusDocumento @default(VIGENTE)
+  observacao      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+  unidade         Unidade   @relation(fields: [unidadeId], references: [id])
+}
+
+enum TipoDocumentoLegal {
+  PGR
+  PCMSO
+  LTCAT
+  PPP
+  LAUDO_INSALUBRIDADE
+  LAUDO_PERICULOSIDADE
+  LAUDO_ERGONOMICO
+  LICENCA_AMBIENTAL
+  CERTIDAO_NEGATIVA
+  CTF_APP_IBAMA
+  AVCB
+  ALVARA
+  OUTRO
+}
+
+// ==================== PENDENCIAS ====================
+model Pendencia {
+  id              String    @id @default(cuid())
+  descricao       String
+  origem          OrigemPendencia
+  empresaId       String
+  unidadeId       String?
+  responsavelId   String?
+  prazo           DateTime
+  prioridade      Prioridade @default(MEDIA)
+  status          StatusPendencia @default(ABERTA)
+  evidencia       String?
+  observacao      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+  unidade         Unidade?  @relation(fields: [unidadeId], references: [id])
+  responsavel     User?     @relation(fields: [responsavelId], references: [id])
+}
+
+enum OrigemPendencia {
+  TST
+  MEIO_AMBIENTE
+  CERTIFICACAO
+  TAXA
+  AUDITORIA
+  DOCUMENTO_LEGAL
+}
+
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum StatusPendencia {
+  ABERTA
+  EM_ANDAMENTO
+  CONCLUIDA
+  VENCIDA
+  CANCELADA
+}
+
+// ==================== HISTORICO ====================
+model Historico {
+  id          String    @id @default(cuid())
+  entidade    String
+  entidadeId  String
+  acao        String
+  descricao   String?
+  usuarioId   String?
+  createdAt   DateTime  @default(now())
+  usuario     User?     @relation(fields: [usuarioId], references: [id])
+}
+
+// ==================== SST GESTAO ====================
+
+model PGR {
+  id                  String          @id @default(cuid())
+  empresaId           String
+  unidadeId           String
+  versao              String
+  dataEmissao         DateTime
+  dataRevisao         DateTime?
+  responsavelTecnico  String
+  crea                String?
+  status              StatusDocumento @default(VIGENTE)
+  observacao          String?
+  anexos              String[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  empresa             Empresa         @relation(fields: [empresaId], references: [id])
+  unidade             Unidade         @relation(fields: [unidadeId], references: [id])
+  revisoes            PGRRevisao[]
+  inventariosRiscos   InventarioRisco[]
+}
+
+model PGRRevisao {
+  id          String   @id @default(cuid())
+  pgrId       String
+  versao      String
+  dataRevisao DateTime
+  descricao   String?
+  responsavel String?
+  createdAt   DateTime @default(now())
+  pgr         PGR      @relation(fields: [pgrId], references: [id], onDelete: Cascade)
+}
+
+model PCMSO {
+  id                  String          @id @default(cuid())
+  empresaId           String
+  unidadeId           String
+  medicoResponsavel   String
+  crm                 String?
+  clinica             String?
+  vigenciaInicial     DateTime
+  vigenciaFinal       DateTime?
+  status              StatusDocumento @default(VIGENTE)
+  observacao          String?
+  anexos              String[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  empresa             Empresa         @relation(fields: [empresaId], references: [id])
+  unidade             Unidade         @relation(fields: [unidadeId], references: [id])
+  examesPrevistos     ExamePrevisto[]
+}
+
+model ExamePrevisto {
+  id             String   @id @default(cuid())
+  pcmsoId        String
+  tipo           String
+  periodicidade  String
+  funcoes        String[]
+  createdAt      DateTime @default(now())
+  pcmso          PCMSO    @relation(fields: [pcmsoId], references: [id], onDelete: Cascade)
+}
+
+model LTCAT {
+  id                  String          @id @default(cuid())
+  empresaId           String
+  unidadeId           String
+  responsavelTecnico  String
+  crea                String?
+  art                 String?
+  dataEmissao         DateTime
+  vigencia            DateTime?
+  ambientesAvaliados  String?
+  agentesNocivos      String[]
+  status              StatusDocumento @default(VIGENTE)
+  observacao          String?
+  anexos              String[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  empresa             Empresa         @relation(fields: [empresaId], references: [id])
+  unidade             Unidade         @relation(fields: [unidadeId], references: [id])
+}
+
+model PPP {
+  id              String      @id @default(cuid())
+  colaboradorId   String
+  empresaId       String
+  unidadeId       String
+  dataEmissao     DateTime
+  historico       String?
+  agentesNocivos  String[]
+  responsavel     String?
+  observacao      String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  colaborador     Colaborador @relation(fields: [colaboradorId], references: [id])
+  empresa         Empresa     @relation(fields: [empresaId], references: [id])
+  unidade         Unidade     @relation(fields: [unidadeId], references: [id])
+}
+
+model InventarioRisco {
+  id                String      @id @default(cuid())
+  empresaId         String
+  unidadeId         String
+  pgrId             String?
+  ghe               String
+  atividade         String
+  agente            String
+  tipoRisco         TipoRisco
+  fontePorVia       String?
+  nivelAcao         String?
+  limiteTolerancia  String?
+  medicaoRealizada  String?
+  medidasControle   String?
+  epc               String?
+  epi               String?
+  responsavel       String?
+  status            StatusRisco @default(IDENTIFICADO)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  empresa           Empresa     @relation(fields: [empresaId], references: [id])
+  unidade           Unidade     @relation(fields: [unidadeId], references: [id])
+  pgr               PGR?        @relation(fields: [pgrId], references: [id])
+}
+
+enum TipoRisco {
+  FISICO
+  QUIMICO
+  BIOLOGICO
+  ERGONOMICO
+  ACIDENTE
+}
+
+enum StatusRisco {
+  IDENTIFICADO
+  AVALIADO
+  CONTROLADO
+}
+
+// ==================== ALERTA ====================
+model Alerta {
+  id          String    @id @default(cuid())
+  tipo        String
+  titulo      String
+  descricao   String
+  entidade    String
+  entidadeId  String
+  vencimento  DateTime?
+  lido        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}

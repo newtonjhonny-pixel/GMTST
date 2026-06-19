@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/* GMTST Design System - CSS Custom Properties */
+
+:root {
+  --brand-from: #38bdf8;
+  --brand-to: #6366f1;
+  --brand-gradient: linear-gradient(135deg, #38bdf8, #6366f1);
+
+  --bg-app: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-alt: #f8fafc;
+  --bg-sidebar: #0f172a;
+  --bg-sidebar-hover: #1e293b;
+  --bg-sidebar-active: rgba(56, 189, 248, 0.12);
+  --bg-topbar: #ffffff;
+
+  --border: #e2e8f0;
+  --border-sidebar: #1e293b;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-sidebar: #64748b;
+  --text-sidebar-active: #38bdf8;
+  --text-inverted: #f8fafc;
+
+  --success: #10b981;
+  --success-bg: #f0fdf4;
+  --success-text: #16a34a;
+  --warning: #f59e0b;
+  --warning-bg: #fffbeb;
+  --warning-text: #d97706;
+  --danger: #ef4444;
+  --danger-bg: #fef2f2;
+  --danger-text: #dc2626;
+  --info: #6366f1;
+  --info-bg: #f5f3ff;
+  --info-text: #7c3aed;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.1), 0 4px 8px rgba(0,0,0,.06);
+
+  --sidebar-width: 248px;
+  --sidebar-collapsed: 52px;
+  --topbar-height: 52px;
+}
+
+.dark {
+  --bg-app: #0a0f1e;
+  --bg-card: #0f172a;
+  --bg-card-alt: #1e293b;
+  --bg-sidebar: #060d1a;
+  --bg-sidebar-hover: #0f172a;
+  --bg-topbar: #0f172a;
+
+  --border: #1e293b;
+  --border-sidebar: #0f172a;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+
+  --success-bg: rgba(16,185,129,.15);
+  --warning-bg: rgba(245,158,11,.15);
+  --danger-bg: rgba(239,68,68,.15);
+  --info-bg: rgba(99,102,241,.15);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.5);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.6);
+}
+
+/* Base */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background-color .2s, color .2s;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Sidebar transition */
+.sidebar-rail {
+  transition: width .25s cubic-bezier(.4,0,.2,1);
+  will-change: width;
+  overflow: hidden;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--brand-from);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+table { border-collapse: collapse; width: 100%; }
+
+/* Form inputs */
+.form-input,
+.form-select {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  appearance: none;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--brand-from);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-input[disabled],
+.form-select[disabled] {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+textarea.form-input {
+  height: auto;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+  cursor: pointer;
+}
