@@ -101,6 +101,9 @@ model Empresa {
   equipamentosPressao  EquipamentoPressao[]
   estoqueEPI           EstoqueEPI[]
   solicitacoesCompra   SolicitacaoCompraEPI[]
+  cipaas               Cipaa[]
+  reunioesCipa         ReuniaoCipaa[]
+  cursosCipa           CursoCipaa[]
 }
 
 model Unidade {
@@ -137,6 +140,7 @@ model Unidade {
   comunicacoes         ComunicacaoSST[]
   extintores           Extintor[]
   equipamentosPressao  EquipamentoPressao[]
+  cipaas               Cipaa[]
 }
 
 enum StatusGeral {
@@ -166,6 +170,8 @@ model Colaborador {
   ppps          PPP[]
   ordensServico  OrdemServico[]
   direitosRecusa DireitoRecusa[]
+  membrosCipa    MembroCipaa[]
+  cursosCipa     CursoCipaa[]
 }
 
 enum StatusColaborador {
@@ -995,6 +1001,91 @@ model OrdemServico {
   empresa         Empresa     @relation(fields: [empresaId], references: [id])
   unidade         Unidade     @relation(fields: [unidadeId], references: [id])
   colaborador     Colaborador? @relation(fields: [colaboradorId], references: [id])
+}
+
+// ==================== CIPAA — NR-5 ====================
+enum CargoCipaa {
+  PRESIDENTE
+  VICE_PRESIDENTE
+  SECRETARIO
+  MEMBRO_EFETIVO
+  MEMBRO_SUPLENTE
+}
+
+enum RepresentacaoCipaa {
+  EMPREGADO
+  EMPREGADOR
+}
+
+enum TipoReuniaoCipaa {
+  ORDINARIA
+  EXTRAORDINARIA
+}
+
+model Cipaa {
+  id            String      @id @default(cuid())
+  empresaId     String
+  unidadeId     String
+  mandatoInicio DateTime
+  mandatoFim    DateTime
+  numeroEdital  String?
+  status        StatusGeral @default(ATIVO)
+  observacao    String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  empresa       Empresa     @relation(fields: [empresaId], references: [id])
+  unidade       Unidade     @relation(fields: [unidadeId], references: [id])
+  membros       MembroCipaa[]
+  reunioes      ReuniaoCipaa[]
+}
+
+model MembroCipaa {
+  id            String             @id @default(cuid())
+  cipaId        String
+  colaboradorId String
+  cargo         CargoCipaa
+  representacao RepresentacaoCipaa
+  dataPosse     DateTime?
+  status        StatusGeral        @default(ATIVO)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  cipa          Cipaa              @relation(fields: [cipaId], references: [id])
+  colaborador   Colaborador        @relation(fields: [colaboradorId], references: [id])
+}
+
+model ReuniaoCipaa {
+  id         String           @id @default(cuid())
+  cipaId     String
+  empresaId  String
+  data       DateTime
+  tipo       TipoReuniaoCipaa @default(ORDINARIA)
+  local      String?
+  pauta      String?
+  ata        String?
+  presentes  String[]
+  aprovada   Boolean          @default(false)
+  observacao String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  cipa       Cipaa            @relation(fields: [cipaId], references: [id])
+  empresa    Empresa          @relation(fields: [empresaId], references: [id])
+}
+
+model CursoCipaa {
+  id            String      @id @default(cuid())
+  empresaId     String
+  colaboradorId String
+  dataCurso     DateTime
+  cargaHoraria  Int?
+  instrutor     String?
+  instituicao   String?
+  validade      DateTime?
+  certificado   String?
+  observacao    String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  empresa       Empresa     @relation(fields: [empresaId], references: [id])
+  colaborador   Colaborador @relation(fields: [colaboradorId], references: [id])
 }
 
 // ==================== ALERTA ====================

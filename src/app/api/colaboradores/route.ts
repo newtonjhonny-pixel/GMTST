@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       status: 'ATIVO',
       ...(unidadeId ? { unidadeId } : {}),
     },
-    select: { id: true, nome: true, cpf: true, funcao: true, unidadeId: true },
+    select: { id: true, nome: true, cpf: true, funcao: true, setor: true, unidadeId: true },
     orderBy: { nome: 'asc' },
   })
   return NextResponse.json(colaboradores)

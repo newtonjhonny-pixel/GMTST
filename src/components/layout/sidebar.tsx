@@ -10,7 +10,7 @@ import {
   ClipboardList, FlaskConical, Flame, TreePine, BadgeCheck,
   BookOpen, ActivitySquare, Globe, Waves, ClipboardCheck,
   ScrollText, History, FilePen, Gauge, Package, ShoppingCart,
-  Megaphone, MousePointerBan, Armchair, FileBarChart2,
+  Megaphone, MousePointerBan, Armchair, FileBarChart2, ShieldCheck,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -75,6 +75,7 @@ const navGroups: NavGroup[] = [
       { href: '/tst/extintores',          label: 'Extintores',               icon: Flame },
       { href: '/tst/equipamentos-pressao',label: 'Equip. Pressão — NR-13',   icon: Gauge },
       { href: '/tst/estatisticas',        label: 'Estatísticas SST',         icon: FileBarChart2 },
+      { href: '/tst/cipaa',              label: 'CIPAA — NR-5',              icon: ShieldCheck },
       { href: '/sst/avcb',               label: 'AVCB / Bombeiros',          icon: Flame },
     ],
   },
