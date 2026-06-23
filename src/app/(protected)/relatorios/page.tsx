@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { Download, FileSpreadsheet, BarChart3, FileText, Shield, Leaf, Award, Receipt, AlertTriangle, Users, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { Download, FileSpreadsheet, BarChart3, FileText, Shield, Leaf, Award, Receipt, AlertTriangle, Users, Loader2, ArrowRight } from 'lucide-react'
 
 type ReportKey = 'pendencias' | 'documentos' | 'taxas' | 'certificacoes' | 'tst' | 'meioambiente' | 'visaogeral' | 'responsavel'
 
@@ -12,12 +13,13 @@ interface RelConfig {
   color: string
   bg: string
   canExport: boolean
+  href?: string
 }
 
 const relatorios: RelConfig[] = [
   { key: 'visaogeral',   titulo: 'Visão Geral por Empresa',      descricao: 'Dashboard completo de todos os módulos por empresa',       icon: BarChart3,      color: '#38bdf8', bg: 'rgba(56,189,248,.12)',  canExport: false },
-  { key: 'tst',          titulo: 'TST — Segurança do Trabalho',  descricao: 'ASOs, EPIs, treinamentos, acidentes e inspeções',          icon: Shield,         color: '#6366f1', bg: 'rgba(99,102,241,.12)',  canExport: false },
-  { key: 'meioambiente', titulo: 'Meio Ambiente',                 descricao: 'Licenças, resíduos, produtos químicos e monitoramentos',   icon: Leaf,           color: '#10b981', bg: 'rgba(16,185,129,.12)', canExport: false },
+  { key: 'tst',          titulo: 'TST — Segurança do Trabalho',  descricao: 'ASOs, EPIs, treinamentos, acidentes, extintores e CIPAA', icon: Shield,         color: '#6366f1', bg: 'rgba(99,102,241,.12)',  canExport: false, href: '/relatorios/sst' },
+  { key: 'meioambiente', titulo: 'Meio Ambiente',                 descricao: 'Licenças, condicionantes, resíduos, PGRS e monitoramentos', icon: Leaf,           color: '#10b981', bg: 'rgba(16,185,129,.12)', canExport: false, href: '/relatorios/meio-ambiente' },
   { key: 'documentos',   titulo: 'Documentos Vencidos',          descricao: 'Todos os documentos com status vencido ou a vencer',       icon: FileText,       color: '#ef4444', bg: 'rgba(239,68,68,.12)',  canExport: true  },
   { key: 'taxas',        titulo: 'Taxas e Pagamentos',           descricao: 'Controle financeiro de taxas IBAMA, CETESB e municipais',  icon: Receipt,        color: '#f59e0b', bg: 'rgba(245,158,11,.12)', canExport: true  },
   { key: 'certificacoes',titulo: 'Certificações',                 descricao: 'Status e vencimentos de todas as certificações',           icon: Award,          color: '#8b5cf6', bg: 'rgba(139,92,246,.12)', canExport: true  },
@@ -220,7 +222,17 @@ export default function RelatoriosPage() {
               <p className="text-sm font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>{r.titulo}</p>
               <p className="text-xs mb-4" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>{r.descricao}</p>
 
-              {!r.canExport && (
+              {r.href && (
+                <Link
+                  href={r.href}
+                  className="flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold mb-2"
+                  style={{ background: r.bg, color: r.color, border: `1px solid ${r.color}33` }}
+                >
+                  <ArrowRight size={12} />Ver Indicadores
+                </Link>
+              )}
+
+              {!r.canExport && !r.href && (
                 <p className="text-[10px] font-semibold mb-3" style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
                   Em breve
                 </p>
