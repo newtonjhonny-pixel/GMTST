@@ -22,8 +22,9 @@ const COLS = [
   { key: 'colaborador', label: 'Colaborador' },
   { key: 'epi', label: 'EPI' },
   { key: 'ca', label: 'CA Nº', width: '100px' },
+  { key: 'valCa', label: 'Val. CA', width: '120px' },
   { key: 'entrega', label: 'Entrega', width: '110px' },
-  { key: 'vencimento', label: 'Vencimento' },
+  { key: 'vencimento', label: 'Venc. EPI' },
   { key: 'qtd', label: 'Qtd.', width: '60px', align: 'center' as const },
   { key: 'empresa', label: 'Empresa' },
 ]
@@ -37,6 +38,9 @@ export default async function EpisPage() {
     orderBy: { dataEntrega: 'desc' },
   })
 
+  const caVencidos = entregas.filter(e => (diasPara(e.epi.validade) ?? 1) < 0).length
+  const caAVencer  = entregas.filter(e => { const d = diasPara(e.epi.validade); return d !== null && d >= 0 && d <= 60 }).length
+
   return (
     <div>
       <div className="flex items-end justify-between mb-6">
@@ -46,6 +50,8 @@ export default async function EpisPage() {
           </h1>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
             {entregas.length} entrega{entregas.length !== 1 ? 's' : ''} registrada{entregas.length !== 1 ? 's' : ''}
+            {caVencidos > 0 && <span style={{ color: '#dc2626', fontWeight: 600 }}> · {caVencidos} CA vencido{caVencidos !== 1 ? 's' : ''}</span>}
+            {caAVencer  > 0 && <span style={{ color: '#d97706', fontWeight: 600 }}> · {caAVencer} CA a vencer (60d)</span>}
           </p>
         </div>
         <Link
@@ -64,6 +70,7 @@ export default async function EpisPage() {
             <Td bold>{e.colaborador.nome}</Td>
             <Td>{e.epi.nome}</Td>
             <Td mono>{e.epi.ca}</Td>
+            <Td><VencBadge d={e.epi.validade} /></Td>
             <Td muted>{fmt(e.dataEntrega)}</Td>
             <Td><VencBadge d={e.dataVencimento} /></Td>
             <Td align="center">{e.quantidade}</Td>

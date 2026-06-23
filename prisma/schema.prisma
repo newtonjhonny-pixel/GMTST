@@ -92,6 +92,7 @@ model Empresa {
   produtosQuimicos     ProdutoQuimico[]
   registrosIBAMA       RegistroIBAMA[]
   monitoramentos       MonitoramentoAmbiental[]
+  ordensServico        OrdemServico[]
 }
 
 model Unidade {
@@ -122,6 +123,7 @@ model Unidade {
   residuos             ControleResiduo[]
   registrosIBAMA       RegistroIBAMA[]
   monitoramentos       MonitoramentoAmbiental[]
+  ordensServico        OrdemServico[]
 }
 
 enum StatusGeral {
@@ -149,6 +151,7 @@ model Colaborador {
   epis          EntregaEPI[]
   treinamentos  ColaboradorTreinamento[]
   ppps          PPP[]
+  ordensServico OrdemServico[]
 }
 
 enum StatusColaborador {
@@ -216,23 +219,25 @@ enum ResultadoASO {
 }
 
 model Treinamento {
-  id              String    @id @default(cuid())
-  nome            String
-  tipo            String
-  empresaId       String
-  unidadeId       String
-  dataRealizacao  DateTime
-  dataVencimento  DateTime?
-  cargaHoraria    Float?
-  instrutor       String?
-  anexo           String?
-  observacao      String?
-  status          StatusGeral @default(ATIVO)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  empresa         Empresa   @relation(fields: [empresaId], references: [id])
-  unidade         Unidade   @relation(fields: [unidadeId], references: [id])
-  colaboradores   ColaboradorTreinamento[]
+  id                   String    @id @default(cuid())
+  nome                 String
+  tipo                 String
+  normaRegulamentadora String?
+  empresaId            String
+  unidadeId            String
+  dataRealizacao       DateTime
+  dataVencimento       DateTime?
+  cargaHoraria         Float?
+  instrutor            String?
+  local                String?
+  anexo                String?
+  observacao           String?
+  status               StatusGeral @default(ATIVO)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  empresa              Empresa   @relation(fields: [empresaId], references: [id])
+  unidade              Unidade   @relation(fields: [unidadeId], references: [id])
+  colaboradores        ColaboradorTreinamento[]
 }
 
 model ColaboradorTreinamento {
@@ -245,21 +250,25 @@ model ColaboradorTreinamento {
 }
 
 model Acidente {
-  id              String    @id @default(cuid())
-  empresaId       String
-  data            DateTime
-  local           String
-  descricao       String
-  tipologia       TipoAcidente
-  cat             Boolean   @default(false)
-  numeroCat       String?
-  investigacao    String?
-  planoAcao       String?
-  anexo           String?
-  status          StatusAcidente @default(ABERTO)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  empresa         Empresa   @relation(fields: [empresaId], references: [id])
+  id               String         @id @default(cuid())
+  empresaId        String
+  data             DateTime
+  local            String
+  descricao        String
+  tipologia        TipoAcidente
+  cat              Boolean        @default(false)
+  numeroCat        String?
+  dataCat          DateTime?
+  eSocial          Boolean        @default(false)
+  eSocialProtocolo String?
+  diasPerdidos     Int?
+  investigacao     String?
+  planoAcao        String?
+  anexo            String?
+  status           StatusAcidente @default(ABERTO)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  empresa          Empresa        @relation(fields: [empresaId], references: [id])
 }
 
 enum TipoAcidente {
@@ -736,6 +745,31 @@ enum StatusRisco {
   IDENTIFICADO
   AVALIADO
   CONTROLADO
+}
+
+// ==================== ORDEM DE SERVIÇO ====================
+model OrdemServico {
+  id              String      @id @default(cuid())
+  numero          String
+  empresaId       String
+  unidadeId       String
+  colaboradorId   String?
+  setor           String?
+  funcao          String?
+  riscos          String[]
+  epis            String[]
+  medidasControle String?
+  dataEmissao     DateTime
+  dataRevisao     DateTime?
+  responsavel     String?
+  assinado        Boolean     @default(false)
+  observacao      String?
+  status          StatusGeral @default(ATIVO)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  empresa         Empresa     @relation(fields: [empresaId], references: [id])
+  unidade         Unidade     @relation(fields: [unidadeId], references: [id])
+  colaborador     Colaborador? @relation(fields: [colaboradorId], references: [id])
 }
 
 // ==================== ALERTA ====================

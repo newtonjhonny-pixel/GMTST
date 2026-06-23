@@ -9,7 +9,7 @@ import {
   ChevronRight, Shield, PanelLeftClose, PanelLeftOpen,
   ClipboardList, FlaskConical, Flame, TreePine, BadgeCheck,
   BookOpen, ActivitySquare, Globe, Waves, ClipboardCheck,
-  ScrollText, History,
+  ScrollText, History, FilePen,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -61,8 +61,9 @@ const navGroups: NavGroup[] = [
       },
       { href: '/tst/epis',         label: 'EPIs',            icon: HardHat },
       { href: '/tst/asos',         label: 'ASOs',            icon: ClipboardCheck },
-      { href: '/tst/treinamentos', label: 'Treinamentos',    icon: BookOpen },
-      { href: '/tst/acidentes',    label: 'Acidentes e CAT', icon: ActivitySquare },
+      { href: '/tst/treinamentos',    label: 'Treinamentos',    icon: BookOpen },
+      { href: '/tst/ordens-servico', label: 'Ordens de Serviço', icon: FilePen },
+      { href: '/tst/acidentes',      label: 'Acidentes e CAT', icon: ActivitySquare },
       { href: '/tst/inspecoes',    label: 'Inspeções',       icon: ScrollText },
       { href: '/sst/avcb',         label: 'AVCB / Bombeiros',icon: Flame },
     ],
