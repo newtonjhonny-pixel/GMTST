@@ -104,6 +104,10 @@ model Empresa {
   cipaas               Cipaa[]
   reunioesCipa         ReuniaoCipaa[]
   cursosCipa           CursoCipaa[]
+  pgrsAmbiental        PGRSAmbiental[]
+  certificadosDest     CertificadoDestinacao[]
+  coletasSeletivas     ColetaSeletiva[]
+  recursosHidricos     RecursoHidrico[]
 }
 
 model Unidade {
@@ -141,6 +145,9 @@ model Unidade {
   extintores           Extintor[]
   equipamentosPressao  EquipamentoPressao[]
   cipaas               Cipaa[]
+  pgrsAmbiental        PGRSAmbiental[]
+  coletasSeletivas     ColetaSeletiva[]
+  recursosHidricos     RecursoHidrico[]
 }
 
 enum StatusGeral {
@@ -1086,6 +1093,120 @@ model CursoCipaa {
   updatedAt     DateTime    @updatedAt
   empresa       Empresa     @relation(fields: [empresaId], references: [id])
   colaborador   Colaborador @relation(fields: [colaboradorId], references: [id])
+}
+
+// ==================== MEIO AMBIENTE — FASE 4 ====================
+
+model PGRSAmbiental {
+  id              String      @id @default(cuid())
+  empresaId       String
+  unidadeId       String
+  versao          String
+  dataElaboracao  DateTime
+  dataVigencia    DateTime
+  dataRevisao     DateTime?
+  responsavel     String?
+  consultor       String?
+  status          StatusGeral @default(ATIVO)
+  observacao      String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  empresa         Empresa     @relation(fields: [empresaId], references: [id])
+  unidade         Unidade     @relation(fields: [unidadeId], references: [id])
+}
+
+model EmpresaColetora {
+  id               String      @id @default(cuid())
+  razaoSocial      String
+  cnpj             String?
+  telefone         String?
+  email            String?
+  responsavel      String?
+  licencaAmbiental String?
+  validadeLicenca  DateTime?
+  tiposResiduos    String[]
+  status           StatusGeral @default(ATIVO)
+  observacao       String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  certificados     CertificadoDestinacao[]
+  coletasSeletivas ColetaSeletiva[]
+}
+
+model CertificadoDestinacao {
+  id               String          @id @default(cuid())
+  empresaId        String
+  coletorId        String
+  numero           String?
+  dataEmissao      DateTime
+  dataVencimento   DateTime?
+  tiposResiduos    String[]
+  quantidadeTotal  Float?
+  unidadeMedida    String?
+  formaDestinacao  String?
+  observacao       String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  empresa          Empresa         @relation(fields: [empresaId], references: [id])
+  coletor          EmpresaColetora @relation(fields: [coletorId], references: [id])
+}
+
+enum MaterialColetaSeletiva {
+  PAPEL
+  PLASTICO
+  VIDRO
+  METAL
+  ORGANICO
+  REJEITO
+  ELETRONICO
+  OUTRO
+}
+
+model ColetaSeletiva {
+  id            String                 @id @default(cuid())
+  empresaId     String
+  unidadeId     String
+  data          DateTime
+  material      MaterialColetaSeletiva
+  quantidade    Float
+  unidadeMedida String                 @default("kg")
+  destinacao    String?
+  coletorId     String?
+  observacao    String?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  empresa       Empresa                @relation(fields: [empresaId], references: [id])
+  unidade       Unidade                @relation(fields: [unidadeId], references: [id])
+  coletor       EmpresaColetora?       @relation(fields: [coletorId], references: [id])
+}
+
+enum TipoRecursoHidrico {
+  OUTORGA_CAPTACAO
+  OUTORGA_LANCAMENTO
+  POCO_ARTESIANO
+  EFLUENTE_TRATADO
+  AGUA_REUSO
+}
+
+model RecursoHidrico {
+  id              String             @id @default(cuid())
+  empresaId       String
+  unidadeId       String
+  tipo            TipoRecursoHidrico
+  numeroOutorga   String?
+  orgaoOtorgante  String?
+  emissao         DateTime?
+  vencimento      DateTime?
+  vazaoAutorizada Float?
+  unidadeMedida   String?
+  finalidade      String?
+  responsavel     String?
+  status          StatusGeral        @default(ATIVO)
+  observacao      String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  empresa         Empresa            @relation(fields: [empresaId], references: [id])
+  unidade         Unidade            @relation(fields: [unidadeId], references: [id])
 }
 
 // ==================== ALERTA ====================

@@ -11,6 +11,7 @@ import {
   BookOpen, ActivitySquare, Globe, Waves, ClipboardCheck,
   ScrollText, History, FilePen, Gauge, Package, ShoppingCart,
   Megaphone, MousePointerBan, Armchair, FileBarChart2, ShieldCheck,
+  Truck, FileCheck2, Recycle, Droplets,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -82,12 +83,17 @@ const navGroups: NavGroup[] = [
   {
     label: 'Meio Ambiente',
     items: [
-      { href: '/meio-ambiente/licencas',          label: 'Licenças Ambientais',     icon: TreePine },
-      { href: '/meio-ambiente/condicionantes',    label: 'Condicionantes',          icon: AlertTriangle },
-      { href: '/meio-ambiente/ibama',             label: 'IBAMA / CTF / RAPP',      icon: Globe },
-      { href: '/meio-ambiente/residuos',          label: 'Resíduos / MTR',          icon: Leaf },
-      { href: '/meio-ambiente/produtos-quimicos', label: 'Produtos Químicos / FISPQ',icon: FlaskConical },
-      { href: '/meio-ambiente/monitoramentos',    label: 'Monitoramentos',          icon: Waves },
+      { href: '/meio-ambiente/licencas',                  label: 'Licenças Ambientais',        icon: TreePine },
+      { href: '/meio-ambiente/condicionantes',            label: 'Condicionantes',             icon: AlertTriangle },
+      { href: '/meio-ambiente/ibama',                     label: 'IBAMA / CTF / RAPP',         icon: Globe },
+      { href: '/meio-ambiente/pgrs',                      label: 'PGRS',                       icon: FileCheck2 },
+      { href: '/meio-ambiente/coletoras',                 label: 'Empresas Coletoras',         icon: Truck },
+      { href: '/meio-ambiente/certificados-destinacao',   label: 'Certificados de Destinação', icon: Leaf },
+      { href: '/meio-ambiente/coleta-seletiva',           label: 'Coleta Seletiva',            icon: Recycle },
+      { href: '/meio-ambiente/recursos-hidricos',         label: 'Recursos Hídricos',          icon: Droplets },
+      { href: '/meio-ambiente/residuos',                  label: 'Resíduos / MTR',             icon: Leaf },
+      { href: '/meio-ambiente/produtos-quimicos',         label: 'Produtos Químicos / FISPQ',  icon: FlaskConical },
+      { href: '/meio-ambiente/monitoramentos',            label: 'Monitoramentos',             icon: Waves },
     ],
   },
   {
