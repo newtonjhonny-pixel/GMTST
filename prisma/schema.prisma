@@ -93,6 +93,14 @@ model Empresa {
   registrosIBAMA       RegistroIBAMA[]
   monitoramentos       MonitoramentoAmbiental[]
   ordensServico        OrdemServico[]
+  aets                 AET[]
+  lips                 LIP[]
+  comunicacoes         ComunicacaoSST[]
+  direitosRecusa       DireitoRecusa[]
+  extintores           Extintor[]
+  equipamentosPressao  EquipamentoPressao[]
+  estoqueEPI           EstoqueEPI[]
+  solicitacoesCompra   SolicitacaoCompraEPI[]
 }
 
 model Unidade {
@@ -124,6 +132,11 @@ model Unidade {
   registrosIBAMA       RegistroIBAMA[]
   monitoramentos       MonitoramentoAmbiental[]
   ordensServico        OrdemServico[]
+  aets                 AET[]
+  lips                 LIP[]
+  comunicacoes         ComunicacaoSST[]
+  extintores           Extintor[]
+  equipamentosPressao  EquipamentoPressao[]
 }
 
 enum StatusGeral {
@@ -151,7 +164,8 @@ model Colaborador {
   epis          EntregaEPI[]
   treinamentos  ColaboradorTreinamento[]
   ppps          PPP[]
-  ordensServico OrdemServico[]
+  ordensServico  OrdemServico[]
+  direitosRecusa DireitoRecusa[]
 }
 
 enum StatusColaborador {
@@ -171,7 +185,9 @@ model EPI {
   status      StatusGeral @default(ATIVO)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  entregas    EntregaEPI[]
+  entregas           EntregaEPI[]
+  estoqueMovimentos  EstoqueEPI[]
+  solicitacoes       SolicitacaoCompraEPI[]
 }
 
 model EntregaEPI {
@@ -745,6 +761,215 @@ enum StatusRisco {
   IDENTIFICADO
   AVALIADO
   CONTROLADO
+}
+
+// ==================== FASE 2 — SST COMPLETO ====================
+
+model AET {
+  id                 String          @id @default(cuid())
+  empresaId          String
+  unidadeId          String
+  responsavelTecnico String
+  crea               String?
+  art                String?
+  dataEmissao        DateTime
+  vigencia           DateTime?
+  setoresAvaliados   String?
+  atividades         String[]
+  fatoresErgonomicos String[]
+  status             StatusDocumento @default(VIGENTE)
+  observacao         String?
+  anexos             String[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  empresa            Empresa         @relation(fields: [empresaId], references: [id])
+  unidade            Unidade         @relation(fields: [unidadeId], references: [id])
+}
+
+model LIP {
+  id                 String          @id @default(cuid())
+  empresaId          String
+  unidadeId          String
+  tipo               TipoLIP
+  responsavelTecnico String
+  crea               String?
+  art                String?
+  dataEmissao        DateTime
+  vigencia           DateTime?
+  setoresAvaliados   String?
+  agentes            String[]
+  grau               String?
+  adicionalPercent   Float?
+  status             StatusDocumento @default(VIGENTE)
+  observacao         String?
+  anexos             String[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  empresa            Empresa         @relation(fields: [empresaId], references: [id])
+  unidade            Unidade         @relation(fields: [unidadeId], references: [id])
+}
+
+enum TipoLIP {
+  INSALUBRIDADE
+  PERICULOSIDADE
+  AMBOS
+}
+
+model ComunicacaoSST {
+  id            String          @id @default(cuid())
+  empresaId     String
+  unidadeId     String?
+  tipo          TipoComunicacao
+  titulo        String
+  data          DateTime
+  local         String?
+  responsavel   String?
+  duracao       Int?
+  participantes Int?
+  conteudo      String?
+  anexo         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  empresa       Empresa         @relation(fields: [empresaId], references: [id])
+  unidade       Unidade?        @relation(fields: [unidadeId], references: [id])
+}
+
+enum TipoComunicacao {
+  DSSMA
+  PALESTRA
+  INFORMATIVO
+  CAMPANHA
+  REUNIAO_SST
+}
+
+model DireitoRecusa {
+  id             String      @id @default(cuid())
+  empresaId      String
+  colaboradorId  String
+  data           DateTime
+  descricaoRisco String
+  motivoRecusa   String
+  providencias   String?
+  responsavel    String?
+  resolvido      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  empresa        Empresa     @relation(fields: [empresaId], references: [id])
+  colaborador    Colaborador @relation(fields: [colaboradorId], references: [id])
+}
+
+model Extintor {
+  id              String       @id @default(cuid())
+  empresaId       String
+  unidadeId       String
+  codigo          String
+  tipo            TipoExtintor
+  capacidade      String
+  localizacao     String
+  setor           String?
+  fabricacao      DateTime?
+  ultimaRecarga   DateTime?
+  proximaRecarga  DateTime
+  ultimaInspecao  DateTime?
+  proximaInspecao DateTime
+  status          StatusGeral  @default(ATIVO)
+  observacao      String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  empresa         Empresa      @relation(fields: [empresaId], references: [id])
+  unidade         Unidade      @relation(fields: [unidadeId], references: [id])
+}
+
+enum TipoExtintor {
+  AGUA
+  PO_ABC
+  PO_BC
+  CO2
+  ESPUMA
+  HALONADO
+}
+
+model EquipamentoPressao {
+  id                 String           @id @default(cuid())
+  empresaId          String
+  unidadeId          String
+  tipo               TipoEquipPressao
+  tag                String
+  fabricante         String?
+  modelo             String?
+  numeroSerie        String?
+  pressaoMaxima      Float?
+  volumeInterno      Float?
+  fluido             String?
+  localizacao        String?
+  dataFabricacao     DateTime?
+  ultimaInspecao     DateTime?
+  proximaInspecao    DateTime?
+  art                String?
+  responsavelTecnico String?
+  status             StatusGeral      @default(ATIVO)
+  observacao         String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  empresa            Empresa          @relation(fields: [empresaId], references: [id])
+  unidade            Unidade          @relation(fields: [unidadeId], references: [id])
+}
+
+enum TipoEquipPressao {
+  VASO_PRESSAO
+  CALDEIRA
+  COMPRESSOR
+  TUBULACAO
+}
+
+model EstoqueEPI {
+  id            String         @id @default(cuid())
+  epiId         String
+  empresaId     String
+  tipo          TipoMovEstoque
+  quantidade    Int
+  dataMovimento DateTime
+  fornecedor    String?
+  notaFiscal    String?
+  responsavel   String?
+  observacao    String?
+  createdAt     DateTime       @default(now())
+  epi           EPI            @relation(fields: [epiId], references: [id])
+  empresa       Empresa        @relation(fields: [empresaId], references: [id])
+}
+
+enum TipoMovEstoque {
+  ENTRADA
+  SAIDA
+  AJUSTE
+}
+
+model SolicitacaoCompraEPI {
+  id              String            @id @default(cuid())
+  empresaId       String
+  epiId           String?
+  descricaoEPI    String
+  quantidade      Int
+  justificativa   String?
+  solicitante     String
+  dataSolicitacao DateTime
+  prazoNecessario DateTime?
+  status          StatusSolicitacao @default(ABERTA)
+  aprovadoPor     String?
+  dataAprovacao   DateTime?
+  observacao      String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  empresa         Empresa           @relation(fields: [empresaId], references: [id])
+  epi             EPI?              @relation(fields: [epiId], references: [id])
+}
+
+enum StatusSolicitacao {
+  ABERTA
+  APROVADA
+  REPROVADA
+  COMPRADA
+  CANCELADA
 }
 
 // ==================== ORDEM DE SERVIÇO ====================
