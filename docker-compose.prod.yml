@@ -1,0 +1,51 @@
+name: gestaotst
+
+services:
+  gestaotst-app:
+    image: gestaotst:prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gestaotst-app
+    restart: unless-stopped
+    user: "1001:1001"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: "1"
+    expose:
+      - "3000"
+    volumes:
+      - gestaotst_uploads:/app/storage/uploads
+    networks:
+      - gestaotst_network
+      - njsistemas_internal
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const http=require('node:http');const req=http.get({host:'127.0.0.1',port:process.env.PORT||3000,path:'/',timeout:5000},res=>process.exit(res.statusCode<500?0:1));req.on('error',()=>process.exit(1));req.on('timeout',()=>{req.destroy();process.exit(1);});\""
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  gestaotst_network:
+    name: gestaotst_network
+  njsistemas_internal:
+    external: true
+    name: njsistemas_internal
+
+volumes:
+  gestaotst_uploads:
+    name: gestaotst_uploads
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/njsistemas/apps/gestaotst/storage/uploads

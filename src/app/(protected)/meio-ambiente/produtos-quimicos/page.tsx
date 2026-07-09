@@ -10,6 +10,7 @@ const COLS = [
   { key: 'riscos', label: 'Riscos' },
   { key: 'epis', label: 'EPIs Necessários' },
   { key: 'fispq', label: 'FISPQ', width: '80px' },
+  { key: 'acoes', label: '', width: '50px' },
 ]
 
 export default async function ProdutosQuimicosPage() {
@@ -63,6 +64,9 @@ export default async function ProdutosQuimicosPage() {
                 ? <a href={p.fispq} target="_blank" rel="noreferrer" className="text-xs font-semibold" style={{ color: 'var(--brand-from)' }}>Ver FISPQ</a>
                 : <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>—</span>
               }
+            </Td>
+            <Td>
+              <Link href={`/meio-ambiente/produtos-quimicos/${p.id}`} className="text-[11px] font-semibold" style={{ color: 'var(--brand-from)' }}>Ver</Link>
             </Td>
           </Tr>
         ))}

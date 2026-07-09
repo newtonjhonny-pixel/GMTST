@@ -15,13 +15,32 @@ model User {
   password      String?
   image         String?
   role          UserRole  @default(ANALISTA_TST)
+  perfilId      String?
+  empresaId     String?
+  unidadeId     String?
   ativo         Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  perfil        Perfil?   @relation(fields: [perfilId], references: [id])
+  empresa       Empresa?  @relation(fields: [empresaId], references: [id])
+  unidade       Unidade?  @relation(fields: [unidadeId], references: [id])
   accounts      Account[]
   sessions      Session[]
   pendencias    Pendencia[]
   historicos    Historico[]
+  documentos    DocumentoAnexo[]
+  movimentosEstoqueEPI EstoqueEPI[]
+}
+
+model Perfil {
+  id         String   @id @default(cuid())
+  nome       String   @unique
+  descricao  String?
+  permissoes String[]
+  ativo      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  usuarios   User[]
 }
 
 model Account {
@@ -108,6 +127,12 @@ model Empresa {
   certificadosDest     CertificadoDestinacao[]
   coletasSeletivas     ColetaSeletiva[]
   recursosHidricos     RecursoHidrico[]
+  avcbs                AVCB[]
+  brigadas             BrigadaIncendio[]
+  simulados            SimuladoIncendio[]
+  usuarios             User[]
+  fichasEPI            FichaEntregaEPI[]
+  epis                 EPI[]
 }
 
 model Unidade {
@@ -148,6 +173,12 @@ model Unidade {
   pgrsAmbiental        PGRSAmbiental[]
   coletasSeletivas     ColetaSeletiva[]
   recursosHidricos     RecursoHidrico[]
+  avcbs                AVCB[]
+  brigadas             BrigadaIncendio[]
+  simulados            SimuladoIncendio[]
+  certificadosDest     CertificadoDestinacao[]
+  usuarios             User[]
+  fichasEPI            FichaEntregaEPI[]
 }
 
 enum StatusGeral {
@@ -173,6 +204,7 @@ model Colaborador {
   unidade       Unidade   @relation(fields: [unidadeId], references: [id])
   asos          ASO[]
   epis          EntregaEPI[]
+  fichasEPI     FichaEntregaEPI[]
   treinamentos  ColaboradorTreinamento[]
   ppps          PPP[]
   ordensServico  OrdemServico[]
@@ -190,31 +222,80 @@ enum StatusColaborador {
 
 // ==================== TST ====================
 model EPI {
-  id          String    @id @default(cuid())
-  nome        String
-  ca          String    @unique
-  tipo        String
-  validade    DateTime?
-  status      StatusGeral @default(ATIVO)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                  String      @id @default(cuid())
+  empresaId           String?
+  nome                String
+  ca                  String
+  tipo                String
+  validade            DateTime?
+  status              StatusGeral @default(ATIVO)
+  codigoInterno       String?
+  codigoBarras        String?
+  descricao           String?
+  categoria           String?
+  fabricante          String?
+  modelo              String?
+  tamanho             String?
+  cor                 String?
+  unidadeMedida       String?     @default("UN")
+  quantidadeEstoque   Int         @default(0)
+  estoqueMinimo       Int         @default(0)
+  localizacao         String?
+  fornecedor          String?
+  valorUnitario       Float?
+  lote                String?
+  dataCompra          DateTime?
+  dataEntrada         DateTime?
+  observacoes         String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  empresa            Empresa?    @relation(fields: [empresaId], references: [id])
   entregas           EntregaEPI[]
   estoqueMovimentos  EstoqueEPI[]
   solicitacoes       SolicitacaoCompraEPI[]
+
+  @@unique([empresaId, ca])
 }
 
 model EntregaEPI {
-  id              String    @id @default(cuid())
-  colaboradorId   String
-  epiId           String
-  dataEntrega     DateTime
-  dataVencimento  DateTime?
-  quantidade      Int       @default(1)
-  anexo           String?
-  observacao      String?
-  createdAt       DateTime  @default(now())
+  id                    String    @id @default(cuid())
+  fichaId               String?
+  colaboradorId         String
+  epiId                 String
+  dataEntrega           DateTime
+  dataVencimento        DateTime?
+  quantidade            Int       @default(1)
+  quantidadeDevolvida   Int       @default(0)
+  anexo                 String?
+  observacao            String?
+  ativo                 Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  ficha           FichaEntregaEPI? @relation(fields: [fichaId], references: [id])
   colaborador     Colaborador @relation(fields: [colaboradorId], references: [id])
   epi             EPI         @relation(fields: [epiId], references: [id])
+  movimentosEstoque EstoqueEPI[]
+}
+
+enum StatusFichaEPI {
+  ATIVA
+  INATIVA
+}
+
+model FichaEntregaEPI {
+  id            String         @id @default(cuid())
+  colaboradorId String
+  empresaId     String
+  unidadeId     String
+  dataEntrega   DateTime
+  observacao    String?
+  status        StatusFichaEPI @default(ATIVA)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  colaborador   Colaborador    @relation(fields: [colaboradorId], references: [id])
+  empresa       Empresa        @relation(fields: [empresaId], references: [id])
+  unidade       Unidade        @relation(fields: [unidadeId], references: [id])
+  itens         EntregaEPI[]
+  movimentosEstoque EstoqueEPI[]
 }
 
 model ASO {
@@ -367,26 +448,45 @@ enum TipoLicenca {
   OUTRO
 }
 
+enum SituacaoResiduo {
+  GERADO
+  AGUARDANDO_COLETA
+  COLETADO
+  DESTINADO
+}
+
 model ControleResiduo {
-  id                String    @id @default(cuid())
+  id                String          @id @default(cuid())
   empresaId         String?
   unidadeId         String?
   descricao         String
+  tipoResiduo       String?
+  classificacao     String?
   codigoIBAMA       String?
   classeRisco       String?
+  origem            String?
+  setorGerador      String?
   quantidade        Float
   unidadeMedida     String
+  peso              Float?
+  formaArmazenamento String?
   dataGeracao       DateTime
+  dataColeta        DateTime?
+  dataDestinacao    DateTime?
   destinacao        String
   empresaColetora   String?
+  coletorId         String?
+  responsavel       String?
+  situacao          SituacaoResiduo @default(GERADO)
   mtr               String?
   certificadoDest   String?
   anexo             String?
   observacao        String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  empresa           Empresa?  @relation(fields: [empresaId], references: [id])
-  unidade           Unidade?  @relation(fields: [unidadeId], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  empresa           Empresa?        @relation(fields: [empresaId], references: [id])
+  unidade           Unidade?        @relation(fields: [unidadeId], references: [id])
+  coletor           EmpresaColetora? @relation(fields: [coletorId], references: [id])
 }
 
 model ProdutoQuimico {
@@ -945,16 +1045,27 @@ model EstoqueEPI {
   fornecedor    String?
   notaFiscal    String?
   responsavel   String?
+  motivo        String?
+  fichaId       String?
+  entregaEpiId  String?
+  usuarioId     String?
+  ativo         Boolean        @default(true)
   observacao    String?
   createdAt     DateTime       @default(now())
   epi           EPI            @relation(fields: [epiId], references: [id])
   empresa       Empresa        @relation(fields: [empresaId], references: [id])
+  ficha         FichaEntregaEPI? @relation(fields: [fichaId], references: [id])
+  entregaEpi    EntregaEPI?    @relation(fields: [entregaEpiId], references: [id])
+  usuario       User?          @relation(fields: [usuarioId], references: [id])
 }
 
 enum TipoMovEstoque {
   ENTRADA
   SAIDA
+  DEVOLUCAO
   AJUSTE
+  PERDA
+  BAIXA
 }
 
 model SolicitacaoCompraEPI {
@@ -1118,12 +1229,17 @@ model PGRSAmbiental {
 model EmpresaColetora {
   id               String      @id @default(cuid())
   razaoSocial      String
+  nomeFantasia     String?
   cnpj             String?
   telefone         String?
   email            String?
   responsavel      String?
   licencaAmbiental String?
+  numeroLicenca    String?
   validadeLicenca  DateTime?
+  endereco         String?
+  municipio        String?
+  estado           String?
   tiposResiduos    String[]
   status           StatusGeral @default(ATIVO)
   observacao       String?
@@ -1131,23 +1247,28 @@ model EmpresaColetora {
   updatedAt        DateTime    @updatedAt
   certificados     CertificadoDestinacao[]
   coletasSeletivas ColetaSeletiva[]
+  residuosMTR      ControleResiduo[]
 }
 
 model CertificadoDestinacao {
   id               String          @id @default(cuid())
   empresaId        String
+  unidadeId        String?
   coletorId        String
   numero           String?
   dataEmissao      DateTime
   dataVencimento   DateTime?
   tiposResiduos    String[]
   quantidadeTotal  Float?
+  peso             Float?
   unidadeMedida    String?
   formaDestinacao  String?
+  responsavel      String?
   observacao       String?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   empresa          Empresa         @relation(fields: [empresaId], references: [id])
+  unidade          Unidade?        @relation(fields: [unidadeId], references: [id])
   coletor          EmpresaColetora @relation(fields: [coletorId], references: [id])
 }
 
@@ -1157,8 +1278,11 @@ enum MaterialColetaSeletiva {
   VIDRO
   METAL
   ORGANICO
-  REJEITO
+  MADEIRA
   ELETRONICO
+  PILHAS
+  LAMPADAS
+  REJEITO
   OUTRO
 }
 
@@ -1166,9 +1290,13 @@ model ColetaSeletiva {
   id            String                 @id @default(cuid())
   empresaId     String
   unidadeId     String
+  local         String?
+  responsavel   String?
+  frequencia    String?
   data          DateTime
   material      MaterialColetaSeletiva
   quantidade    Float
+  peso          Float?
   unidadeMedida String                 @default("kg")
   destinacao    String?
   coletorId     String?
@@ -1220,4 +1348,101 @@ model Alerta {
   vencimento  DateTime?
   lido        Boolean   @default(false)
   createdAt   DateTime  @default(now())
+}
+
+// ==================== DOCUMENTOS / ANEXOS (upload de PDF) ====================
+// Modelo genérico de anexo, reutilizável por qualquer módulo (PGR, PCMSO, LTCAT,
+// AET, LIP, PPP, ASO, Ordem de Serviço, Licenças, Condicionantes, IBAMA, Resíduos,
+// Produtos Químicos, Certificações, Taxas, Documentos Legais...).
+// entidade = nome do módulo (ex: "PGR"), entidadeId = id do registro do módulo.
+model DocumentoAnexo {
+  id           String            @id @default(cuid())
+  entidade     String
+  entidadeId   String
+  nome         String
+  tipo         String
+  arquivoNome  String
+  arquivoUrl   String
+  tamanho      Int
+  mimeType     String
+  usuarioId    String?
+  observacao   String?
+  status       StatusAnexo       @default(ATIVO)
+  versao       Int               @default(1)
+  substituiId  String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  usuario      User?             @relation(fields: [usuarioId], references: [id])
+  substitui    DocumentoAnexo?   @relation("HistoricoAnexo", fields: [substituiId], references: [id])
+  substituidoPor DocumentoAnexo[] @relation("HistoricoAnexo")
+
+  @@index([entidade, entidadeId])
+}
+
+enum StatusAnexo {
+  ATIVO
+  INATIVO
+}
+
+// ==================== AVCB / BOMBEIROS ====================
+model AVCB {
+  id                 String          @id @default(cuid())
+  empresaId          String
+  unidadeId          String
+  numero             String
+  tipo               TipoAVCB        @default(AVCB)
+  orgaoEmissor       String
+  dataEmissao        DateTime?
+  dataValidade       DateTime
+  areaProtegida      Float?
+  responsavelTecnico String?
+  crea               String?
+  status             StatusDocumento @default(VIGENTE)
+  observacao         String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  empresa            Empresa         @relation(fields: [empresaId], references: [id])
+  unidade            Unidade         @relation(fields: [unidadeId], references: [id])
+}
+
+enum TipoAVCB {
+  AVCB
+  CLCB
+}
+
+model BrigadaIncendio {
+  id                String      @id @default(cuid())
+  empresaId         String
+  unidadeId         String
+  responsavel       String
+  qtdMembros        Int?
+  dataTreinamento   DateTime?
+  dataValidade      DateTime
+  status            StatusGeral @default(ATIVO)
+  observacao        String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  empresa           Empresa     @relation(fields: [empresaId], references: [id])
+  unidade           Unidade     @relation(fields: [unidadeId], references: [id])
+}
+
+model SimuladoIncendio {
+  id              String          @id @default(cuid())
+  empresaId       String
+  unidadeId       String
+  dataPrevista    DateTime?
+  dataRealizacao  DateTime?
+  participantes   Int?
+  status          StatusSimulado  @default(PENDENTE)
+  observacao      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  empresa         Empresa         @relation(fields: [empresaId], references: [id])
+  unidade         Unidade         @relation(fields: [unidadeId], references: [id])
+}
+
+enum StatusSimulado {
+  PENDENTE
+  REALIZADO
+  CANCELADO
 }

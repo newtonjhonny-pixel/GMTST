@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const existing = await prisma.user.findUnique({ where: { email: 'admin@gmtst.com' } })
+    const existing = await prisma.user.findUnique({ where: { email: 'admin@gestaotst.com.br' } })
 
     if (existing) {
       return NextResponse.json({ ok: true, message: 'Usuario admin ja existe. Nenhuma alteracao feita.' })
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     await prisma.user.create({
       data: {
         name: 'Administrador',
-        email: 'admin@gmtst.com',
+        email: 'admin@gestaotst.com.br',
         password: hash,
         role: 'ADMINISTRADOR',
         ativo: true,

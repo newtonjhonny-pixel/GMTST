@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* GMTST Design System - CSS Custom Properties */
+/* GestãoTST Design System - CSS Custom Properties */
 
 :root {
   --brand-from: #38bdf8;
@@ -160,6 +160,42 @@ textarea.form-input {
   height: auto;
   padding: 10px 12px;
   resize: vertical;
+}
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-force-block {
+    display: block !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+  }
+
+  main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .dashboard-print-area {
+    max-width: 100% !important;
+  }
 }
 
 .form-select {

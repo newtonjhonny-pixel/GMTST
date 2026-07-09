@@ -38,6 +38,7 @@ const COLS = [
   { key: 'emissao', label: 'Emissão', width: '100px' },
   { key: 'vencimento', label: 'Vencimento', width: '110px' },
   { key: 'status', label: 'Status', width: '130px' },
+  { key: 'acoes', label: '', width: '50px' },
 ]
 
 export default async function LicencasPage() {
@@ -90,6 +91,9 @@ export default async function LicencasPage() {
             <Td muted>{fmt(l.emissao)}</Td>
             <Td>{fmt(l.vencimento)}</Td>
             <Td><VencBadge d={l.vencimento} status={l.status} /></Td>
+            <Td>
+              <Link href={`/meio-ambiente/licencas/${l.id}`} className="text-[11px] font-semibold" style={{ color: 'var(--brand-from)' }}>Ver</Link>
+            </Td>
           </Tr>
         ))}
       </DataTable>

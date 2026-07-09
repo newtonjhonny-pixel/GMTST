@@ -55,7 +55,7 @@ export default function LoginPage() {
                 <Shield className="h-11 w-11 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tight">GMTST</h1>
+            <h1 className="text-4xl font-black text-white tracking-tight">GestãoTST</h1>
             <p className="text-blue-200 text-base mt-2 font-medium">
               Gestão de TST e Meio Ambiente
             </p>
@@ -150,7 +150,7 @@ export default function LoginPage() {
 
         {/* Versão */}
         <p className="mt-6 text-center text-xs text-white/40">
-          GMTST v1.0 &nbsp;·&nbsp; Gestão de Segurança do Trabalho e Meio Ambiente
+          GestãoTST v1.0 &nbsp;·&nbsp; Gestão de Segurança do Trabalho e Meio Ambiente
         </p>
       </div>
     </div>

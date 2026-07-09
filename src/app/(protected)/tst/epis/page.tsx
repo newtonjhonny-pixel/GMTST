@@ -7,51 +7,45 @@ function diasPara(d: Date | null) {
   if (!d) return null
   return Math.ceil((new Date(d).getTime() - Date.now()) / 86400000)
 }
-function fmt(d: Date | null) {
-  return d ? new Date(d).toLocaleDateString('pt-BR') : '—'
-}
-function VencBadge({ d }: { d: Date | null }) {
-  const dias = diasPara(d)
-  if (dias === null) return <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>—</span>
-  if (dias < 0)  return <Pill color="#dc2626" bg="#fef2f2">Vencido</Pill>
-  if (dias <= 30) return <Pill color="#d97706" bg="#fffbeb">{fmt(d)} ({dias}d)</Pill>
-  return <Pill color="#16a34a" bg="#f0fdf4">{fmt(d)}</Pill>
+function fmt(d: Date) {
+  return new Date(d).toLocaleDateString('pt-BR')
 }
 
 const COLS = [
   { key: 'colaborador', label: 'Colaborador' },
-  { key: 'epi', label: 'EPI' },
-  { key: 'ca', label: 'CA Nº', width: '100px' },
-  { key: 'valCa', label: 'Val. CA', width: '120px' },
-  { key: 'entrega', label: 'Entrega', width: '110px' },
-  { key: 'vencimento', label: 'Venc. EPI' },
-  { key: 'qtd', label: 'Qtd.', width: '60px', align: 'center' as const },
-  { key: 'empresa', label: 'Empresa' },
+  { key: 'empresa',      label: 'Empresa' },
+  { key: 'unidade',      label: 'Unidade' },
+  { key: 'entrega',      label: 'Data da Entrega', width: '130px' },
+  { key: 'itens',        label: 'Qtd. Itens',      width: '90px', align: 'center' as const },
+  { key: 'vencidos',     label: 'Itens Vencidos',  width: '110px', align: 'center' as const },
+  { key: 'status',       label: 'Status',          width: '90px', align: 'center' as const },
+  { key: 'acoes',        label: '',                width: '50px' },
 ]
 
-export default async function EpisPage() {
-  const entregas = await prisma.entregaEPI.findMany({
+export default async function FichasEpiPage() {
+  const fichas = await prisma.fichaEntregaEPI.findMany({
     include: {
-      colaborador: { include: { unidade: { include: { empresa: true } } } },
-      epi: true,
+      colaborador: true,
+      empresa: true,
+      unidade: true,
+      itens: { where: { ativo: true }, include: { epi: true } },
     },
     orderBy: { dataEntrega: 'desc' },
   })
 
-  const caVencidos = entregas.filter(e => (diasPara(e.epi.validade) ?? 1) < 0).length
-  const caAVencer  = entregas.filter(e => { const d = diasPara(e.epi.validade); return d !== null && d >= 0 && d <= 60 }).length
+  const fichasAtivas = fichas.filter(f => f.status === 'ATIVA').length
+  const totalVencidos = fichas.reduce((acc, f) => acc + f.itens.filter(i => (diasPara(i.dataVencimento) ?? 1) < 0).length, 0)
 
   return (
     <div>
       <div className="flex items-end justify-between mb-6">
         <div>
           <h1 className="text-xl font-extrabold" style={{ color: 'var(--text-primary)', letterSpacing: '-.3px' }}>
-            Entrega de EPIs
+            Controle de EPIs — Fichas de Entrega
           </h1>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-            {entregas.length} entrega{entregas.length !== 1 ? 's' : ''} registrada{entregas.length !== 1 ? 's' : ''}
-            {caVencidos > 0 && <span style={{ color: '#dc2626', fontWeight: 600 }}> · {caVencidos} CA vencido{caVencidos !== 1 ? 's' : ''}</span>}
-            {caAVencer  > 0 && <span style={{ color: '#d97706', fontWeight: 600 }}> · {caAVencer} CA a vencer (60d)</span>}
+            {fichas.length} ficha{fichas.length !== 1 ? 's' : ''} · {fichasAtivas} ativa{fichasAtivas !== 1 ? 's' : ''}
+            {totalVencidos > 0 && <span style={{ color: '#dc2626', fontWeight: 600 }}> · {totalVencidos} item(ns) vencido(s)</span>}
           </p>
         </div>
         <Link
@@ -64,19 +58,30 @@ export default async function EpisPage() {
         </Link>
       </div>
 
-      <DataTable columns={COLS} rowCount={entregas.length} empty={{ icon: '⛑', message: 'Nenhuma entrega de EPI registrada' }}>
-        {entregas.map(e => (
-          <Tr key={e.id}>
-            <Td bold>{e.colaborador.nome}</Td>
-            <Td>{e.epi.nome}</Td>
-            <Td mono>{e.epi.ca}</Td>
-            <Td><VencBadge d={e.epi.validade} /></Td>
-            <Td muted>{fmt(e.dataEntrega)}</Td>
-            <Td><VencBadge d={e.dataVencimento} /></Td>
-            <Td align="center">{e.quantidade}</Td>
-            <Td muted>{e.colaborador.unidade.empresa.razaoSocial}</Td>
-          </Tr>
-        ))}
+      <DataTable columns={COLS} rowCount={fichas.length} empty={{ icon: '⛑', message: 'Nenhuma ficha de entrega de EPI registrada' }}>
+        {fichas.map(f => {
+          const vencidos = f.itens.filter(i => (diasPara(i.dataVencimento) ?? 1) < 0).length
+          return (
+            <Tr key={f.id}>
+              <Td bold>{f.colaborador.nome}</Td>
+              <Td muted>{f.empresa.razaoSocial}</Td>
+              <Td muted>{f.unidade.nome}</Td>
+              <Td>{fmt(f.dataEntrega)}</Td>
+              <Td align="center">{f.itens.length}</Td>
+              <Td align="center">
+                {vencidos > 0 ? <Pill color="#dc2626" bg="#fef2f2">{vencidos}</Pill> : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>0</span>}
+              </Td>
+              <Td align="center">
+                <Pill color={f.status === 'ATIVA' ? '#16a34a' : '#64748b'} bg={f.status === 'ATIVA' ? '#f0fdf4' : '#f8fafc'}>
+                  {f.status === 'ATIVA' ? 'Ativa' : 'Inativa'}
+                </Pill>
+              </Td>
+              <Td>
+                <Link href={`/tst/epis/${f.id}`} className="text-[11px] font-semibold" style={{ color: 'var(--brand-from)' }}>Ver</Link>
+              </Td>
+            </Tr>
+          )
+        })}
       </DataTable>
     </div>
   )

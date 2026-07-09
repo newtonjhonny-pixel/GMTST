@@ -1,11 +1,20 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, ArrowLeft, Plus, X } from 'lucide-react'
 import Link from 'next/link'
+import { DocumentManager, DocumentManagerHandle } from '@/components/anexos/DocumentManager'
 
 interface Empresa { id: string; razaoSocial: string }
 interface Unidade { id: string; nome: string; empresaId: string }
+
+const TIPOS_DOCUMENTO_LTCAT = [
+  'LTCAT assinado',
+  'ART',
+  'Laudo complementar',
+  'Evidência técnica',
+  'Outros',
+]
 
 export default function NovoLtcatPage() {
   const router = useRouter()
@@ -16,6 +25,7 @@ export default function NovoLtcatPage() {
   const [novoAgente, setNovoAgente] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const docsRef = useRef<DocumentManagerHandle>(null)
 
   useEffect(() => { fetch('/api/empresas').then(r => r.json()).then(setEmpresas) }, [])
   useEffect(() => {
@@ -48,8 +58,15 @@ export default function NovoLtcatPage() {
     }
     try {
       const res = await fetch('/api/sst/ltcat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Erro ao salvar'); setSaving(false); return }
-      router.push('/sst/ltcat')
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Erro ao salvar'); setSaving(false); return }
+
+      if (docsRef.current?.hasPending()) {
+        const ok = await docsRef.current.commitPendingUploads(data.id)
+        if (!ok) setError('LTCAT salvo, mas houve falha ao enviar um ou mais documentos. Você pode tentar novamente na tela do LTCAT.')
+      }
+
+      router.push(`/sst/ltcat/${data.id}`)
       router.refresh()
     } catch { setError('Erro de conexão'); setSaving(false) }
   }
@@ -159,6 +176,10 @@ export default function NovoLtcatPage() {
           </button>
         </div>
       </form>
+
+      <div className="mt-4">
+        <DocumentManager ref={docsRef} entidade="LTCAT" tipos={TIPOS_DOCUMENTO_LTCAT} titulo="Documentos do LTCAT" />
+      </div>
     </div>
   )
 }

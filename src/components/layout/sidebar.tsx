@@ -1,17 +1,18 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { useTheme } from '@/lib/theme-context'
 import { cn } from '@/lib/utils'
+import { ROTA_PARA_PERMISSAO } from '@/lib/permissions'
 import {
-  LayoutDashboard, Building2, Users, HardHat, Leaf, Award, Receipt,
-  FileText, AlertTriangle, BarChart3, Settings, ChevronDown,
-  ChevronRight, Shield, PanelLeftClose, PanelLeftOpen,
-  ClipboardList, FlaskConical, Flame, TreePine, BadgeCheck,
-  BookOpen, ActivitySquare, Globe, Waves, ClipboardCheck,
-  ScrollText, History, FilePen, Gauge, Package, ShoppingCart,
-  Megaphone, MousePointerBan, Armchair, FileBarChart2, ShieldCheck,
-  Truck, FileCheck2, Recycle, Droplets,
+  LayoutDashboard, Building2, Users, HardHat,
+  AlertTriangle, BarChart3, Settings, ChevronDown,
+  ChevronRight, Shield, ShieldCheck, PanelLeftClose, PanelLeftOpen,
+  ClipboardList, FlaskConical, Flame, TreePine,
+  BookOpen, Globe, Waves,
+  History,
+  Recycle, Droplets,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -56,28 +57,36 @@ const navGroups: NavGroup[] = [
           { href: '/sst/pgr',               label: 'PGR' },
           { href: '/sst/pcmso',             label: 'PCMSO' },
           { href: '/sst/ltcat',             label: 'LTCAT' },
-          { href: '/sst/ppp',               label: 'PPP' },
-          { href: '/sst/inventario-riscos', label: 'Inventário de Riscos' },
-          { href: '/sst/esocial',           label: 'eSocial SST' },
         ],
       },
-      { href: '/tst/epis',                label: 'EPIs',                    icon: HardHat },
-      { href: '/tst/estoque-epi',         label: 'Estoque de EPIs',          icon: Package },
-      { href: '/tst/solicitacoes-compra', label: 'Solicitações de Compra',   icon: ShoppingCart },
-      { href: '/tst/asos',               label: 'ASOs',                     icon: ClipboardCheck },
-      { href: '/tst/treinamentos',        label: 'Treinamentos',             icon: BookOpen },
-      { href: '/tst/comunicacoes',        label: 'Comunicação SST',          icon: Megaphone },
-      { href: '/tst/ordens-servico',      label: 'Ordens de Serviço',        icon: FilePen },
-      { href: '/tst/acidentes',           label: 'Acidentes e CAT',          icon: ActivitySquare },
-      { href: '/tst/direito-recusa',      label: 'Direito de Recusa',        icon: MousePointerBan },
-      { href: '/tst/inspecoes',           label: 'Inspeções',                icon: ScrollText },
-      { href: '/sst/aet',                 label: 'AET — Ergonomia',          icon: Armchair },
-      { href: '/sst/lip',                 label: 'LIP — Insalubridade/Periculosidade', icon: FlaskConical },
-      { href: '/tst/extintores',          label: 'Extintores',               icon: Flame },
-      { href: '/tst/equipamentos-pressao',label: 'Equip. Pressão — NR-13',   icon: Gauge },
-      { href: '/tst/estatisticas',        label: 'Estatísticas SST',         icon: FileBarChart2 },
-      { href: '/tst/cipaa',              label: 'CIPAA — NR-5',              icon: ShieldCheck },
-      { href: '/sst/avcb',               label: 'AVCB / Bombeiros',          icon: Flame },
+      {
+        label: 'EPIs', icon: HardHat,
+        children: [
+          { href: '/tst/epis',        label: 'Controle de EPIs' },
+          { href: '/tst/estoque-epi', label: 'Estoque de EPIs' },
+        ],
+      },
+      {
+        label: 'Treinamentos', icon: BookOpen,
+        children: [
+          { href: '/tst/treinamentos', label: 'Treinamentos' },
+          { href: '/tst/comunicacoes', label: 'Comunicação SST' },
+        ],
+      },
+      {
+        label: 'AVCB / Bombeiros', icon: Flame,
+        children: [
+          { href: '/sst/avcb/registros',        label: 'AVCB / CLCB' },
+          { href: '/sst/avcb/brigada',          label: 'Brigada de Incêndio' },
+          { href: '/sst/avcb/simulados',        label: 'Simulados' },
+          { href: '/tst/extintores',            label: 'Extintores' },
+          { href: '/sst/avcb/hidrantes',        label: 'Hidrantes' },
+          { href: '/sst/avcb/iluminacao',       label: 'Iluminação de Emergência' },
+          { href: '/sst/avcb/sinalizacao',      label: 'Sinalização de Emergência' },
+          { href: '/sst/avcb/rotas-fuga',       label: 'Rotas de Fuga' },
+          { href: '/sst/avcb/alarmes',          label: 'Alarmes de Incêndio' },
+        ],
+      },
     ],
   },
   {
@@ -86,22 +95,19 @@ const navGroups: NavGroup[] = [
       { href: '/meio-ambiente/licencas',                  label: 'Licenças Ambientais',        icon: TreePine },
       { href: '/meio-ambiente/condicionantes',            label: 'Condicionantes',             icon: AlertTriangle },
       { href: '/meio-ambiente/ibama',                     label: 'IBAMA / CTF / RAPP',         icon: Globe },
-      { href: '/meio-ambiente/pgrs',                      label: 'PGRS',                       icon: FileCheck2 },
-      { href: '/meio-ambiente/coletoras',                 label: 'Empresas Coletoras',         icon: Truck },
-      { href: '/meio-ambiente/certificados-destinacao',   label: 'Certificados de Destinação', icon: Leaf },
-      { href: '/meio-ambiente/coleta-seletiva',           label: 'Coleta Seletiva',            icon: Recycle },
+      {
+        label: 'Resíduos', icon: Recycle,
+        children: [
+          { href: '/meio-ambiente/residuos',                  label: 'Resíduos / MTR' },
+          { href: '/meio-ambiente/pgrs',                      label: 'PGRS' },
+          { href: '/meio-ambiente/coletoras',                 label: 'Empresas Coletoras' },
+          { href: '/meio-ambiente/certificados-destinacao',   label: 'Certificados de Destinação' },
+          { href: '/meio-ambiente/coleta-seletiva',           label: 'Coleta Seletiva' },
+        ],
+      },
       { href: '/meio-ambiente/recursos-hidricos',         label: 'Recursos Hídricos',          icon: Droplets },
-      { href: '/meio-ambiente/residuos',                  label: 'Resíduos / MTR',             icon: Leaf },
       { href: '/meio-ambiente/produtos-quimicos',         label: 'Produtos Químicos / FISPQ',  icon: FlaskConical },
       { href: '/meio-ambiente/monitoramentos',            label: 'Monitoramentos',             icon: Waves },
-    ],
-  },
-  {
-    label: 'Compliance',
-    items: [
-      { href: '/certificacoes', label: 'Certificações',    icon: Award },
-      { href: '/taxas',         label: 'Taxas e Pagamentos',icon: Receipt },
-      { href: '/documentos',    label: 'Documentos Legais', icon: FileText },
     ],
   },
   {
@@ -115,7 +121,8 @@ const navGroups: NavGroup[] = [
   {
     label: 'Administração',
     items: [
-      { href: '/admin/usuarios', label: 'Usuários e Perfis', icon: Shield },
+      { href: '/admin/usuarios', label: 'Usuários',          icon: Shield },
+      { href: '/admin/perfis',   label: 'Perfis de Acesso',  icon: ShieldCheck },
     ],
   },
 ]
@@ -124,6 +131,16 @@ export function Sidebar({ pendenciasCount = 0 }: { pendenciasCount?: number }) {
   const pathname = usePathname()
   const { sidebarCollapsed, toggleSidebar } = useTheme()
   const [expanded, setExpanded] = useState<string[]>(['Gestão SST'])
+  const { data: sessionData } = useSession()
+  const permissoes: string[] | null = (sessionData?.user as any)?.permissoes ?? null
+
+  // Usuário sem perfil vinculado (legado) mantém acesso total, para não quebrar contas existentes.
+  const podeVerRota = (href: string) => {
+    if (!permissoes) return true
+    const chave = ROTA_PARA_PERMISSAO[href]
+    if (!chave) return true
+    return permissoes.includes(chave)
+  }
 
   const toggle = (label: string) =>
     setExpanded(p => p.includes(label) ? p.filter(l => l !== label) : [...p, label])
@@ -157,7 +174,7 @@ export function Sidebar({ pendenciasCount = 0 }: { pendenciasCount?: number }) {
           <>
             <div className="min-w-0 flex-1">
               <div className="text-sm font-extrabold" style={{ color: 'var(--text-inverted)', letterSpacing: '-.3px' }}>
-                GMTST
+                GestãoTST
               </div>
               <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                 SST · Meio Ambiente
@@ -177,7 +194,12 @@ export function Sidebar({ pendenciasCount = 0 }: { pendenciasCount?: number }) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden" style={{ padding: collapsed ? '10px 5px' : '10px 8px' }}>
-        {navGroups.map((group, gi) => (
+        {navGroups.map((group, gi) => {
+          const grupoTemItemVisivel = group.items.some(item =>
+            item.children ? item.children.some(c => podeVerRota(c.href)) : podeVerRota(item.href!)
+          )
+          if (!grupoTemItemVisivel) return null
+          return (
           <div key={group.label} style={{ marginBottom: collapsed ? 8 : 4 }}>
             {/* Group label */}
             {!collapsed && (
@@ -198,8 +220,10 @@ export function Sidebar({ pendenciasCount = 0 }: { pendenciasCount?: number }) {
 
             {group.items.map(item => {
               if (item.children) {
+                const childrenVisiveis = item.children.filter(c => podeVerRota(c.href))
+                if (childrenVisiveis.length === 0) return null
                 const isExp = expanded.includes(item.label)
-                const active = groupActive(item.children)
+                const active = groupActive(childrenVisiveis)
                 return (
                   <div key={item.label}>
                     <button
@@ -224,7 +248,7 @@ export function Sidebar({ pendenciasCount = 0 }: { pendenciasCount?: number }) {
                     </button>
                     {isExp && !collapsed && (
                       <div className="mb-1" style={{ marginLeft: 20, borderLeft: '1px solid var(--border-sidebar)', paddingLeft: 8 }}>
-                        {item.children.map(child => (
+                        {childrenVisiveis.map(child => (
                           <Link
                             key={child.href}
                             href={child.href}
@@ -247,6 +271,8 @@ export function Sidebar({ pendenciasCount = 0 }: { pendenciasCount?: number }) {
                   </div>
                 )
               }
+
+              if (!podeVerRota(item.href!)) return null
 
               const active = isActive(item.href!)
               const badgeCount = item.badge === -1 ? pendenciasCount : item.badge
@@ -286,7 +312,8 @@ export function Sidebar({ pendenciasCount = 0 }: { pendenciasCount?: number }) {
               )
             })}
           </div>
-        ))}
+          )
+        })}
       </nav>
 
       {/* Bottom */}

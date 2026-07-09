@@ -15,27 +15,30 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleSidebar: () => {},
 })
 
+const THEME_KEY = 'gestaotst-theme'
+const SIDEBAR_KEY = 'gestaotst-sidebar-collapsed'
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('gmtst-theme') as 'light' | 'dark' | null
+    const saved = localStorage.getItem(THEME_KEY) as 'light' | 'dark' | null
     if (saved) setTheme(saved)
-    const savedSidebar = localStorage.getItem('gmtst-sidebar-collapsed')
+    const savedSidebar = localStorage.getItem(SIDEBAR_KEY)
     if (savedSidebar === 'true') setSidebarCollapsed(true)
   }, [])
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
-    localStorage.setItem('gmtst-theme', theme)
+    localStorage.setItem(THEME_KEY, theme)
   }, [theme])
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light')
 
   const toggleSidebar = () => {
     setSidebarCollapsed(v => {
-      localStorage.setItem('gmtst-sidebar-collapsed', String(!v))
+      localStorage.setItem(SIDEBAR_KEY, String(!v))
       return !v
     })
   }

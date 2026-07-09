@@ -4,9 +4,9 @@ import { Building2, Plus, MapPin, Users, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 const STATUS_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  ATIVO:   { bg: '#f0fdf4', text: '#16a34a', label: 'Ativa' },
-  INATIVO: { bg: '#fef2f2', text: '#dc2626', label: 'Inativa' },
-  SUSPENSO:{ bg: '#fffbeb', text: '#d97706', label: 'Suspensa' },
+  ATIVO:     { bg: '#f0fdf4', text: '#16a34a', label: 'Ativa' },
+  INATIVO:   { bg: '#fef2f2', text: '#dc2626', label: 'Inativa' },
+  ARQUIVADO: { bg: '#f1f5f9', text: '#475569', label: 'Arquivada' },
 }
 
 export default async function EmpresasPage() {

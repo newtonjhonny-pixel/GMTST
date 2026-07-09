@@ -18,7 +18,7 @@ interface RelConfig {
 
 const relatorios: RelConfig[] = [
   { key: 'visaogeral',   titulo: 'Visão Geral por Empresa',      descricao: 'Dashboard completo de todos os módulos por empresa',       icon: BarChart3,      color: '#38bdf8', bg: 'rgba(56,189,248,.12)',  canExport: false },
-  { key: 'tst',          titulo: 'TST — Segurança do Trabalho',  descricao: 'ASOs, EPIs, treinamentos, acidentes, extintores e CIPAA', icon: Shield,         color: '#6366f1', bg: 'rgba(99,102,241,.12)',  canExport: false, href: '/relatorios/sst' },
+  { key: 'tst',          titulo: 'TST — Segurança do Trabalho',  descricao: 'EPIs, treinamentos e extintores', icon: Shield,         color: '#6366f1', bg: 'rgba(99,102,241,.12)',  canExport: false, href: '/relatorios/sst' },
   { key: 'meioambiente', titulo: 'Meio Ambiente',                 descricao: 'Licenças, condicionantes, resíduos, PGRS e monitoramentos', icon: Leaf,           color: '#10b981', bg: 'rgba(16,185,129,.12)', canExport: false, href: '/relatorios/meio-ambiente' },
   { key: 'documentos',   titulo: 'Documentos Vencidos',          descricao: 'Todos os documentos com status vencido ou a vencer',       icon: FileText,       color: '#ef4444', bg: 'rgba(239,68,68,.12)',  canExport: true  },
   { key: 'taxas',        titulo: 'Taxas e Pagamentos',           descricao: 'Controle financeiro de taxas IBAMA, CETESB e municipais',  icon: Receipt,        color: '#f59e0b', bg: 'rgba(245,158,11,.12)', canExport: true  },
@@ -92,11 +92,11 @@ async function exportExcel(key: ReportKey) {
   const ws = XLSX.utils.json_to_sheet(rows)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, sheetName)
-  XLSX.writeFile(wb, `GMTST_${sheetName}_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  XLSX.writeFile(wb, `GestaoTST_${sheetName}_${new Date().toISOString().slice(0, 10)}.xlsx`)
 }
 
 async function exportPDF(key: ReportKey) {
-  const { default: jsPDF } = await import('jspdf')
+  const { jsPDF } = await import('jspdf')
   const { default: autoTable } = await import('jspdf-autotable')
   const data = await fetch(`/api/${key === 'pendencias' ? 'pendencias' : key === 'taxas' ? 'taxas' : key === 'certificacoes' ? 'certificacoes' : 'documentos'}`).then(r => r.json())
 
@@ -130,7 +130,7 @@ async function exportPDF(key: ReportKey) {
   doc.text(title, 14, 16)
   doc.setFontSize(9)
   doc.setTextColor(100, 116, 139)
-  doc.text(`Gerado em ${now} · GMTST — Sistema de Gestão TST e Meio Ambiente`, 14, 23)
+  doc.text(`Gerado em ${now} · GestãoTST — Sistema de Gestão TST e Meio Ambiente`, 14, 23)
 
   autoTable(doc, {
     head,
@@ -142,7 +142,7 @@ async function exportPDF(key: ReportKey) {
     margin: { left: 14, right: 14 },
   })
 
-  doc.save(`GMTST_${key}_${new Date().toISOString().slice(0, 10)}.pdf`)
+  doc.save(`GestaoTST_${key}_${new Date().toISOString().slice(0, 10)}.pdf`)
 }
 
 export default function RelatoriosPage() {

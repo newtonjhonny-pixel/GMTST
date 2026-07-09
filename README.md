@@ -1,198 +1,134 @@
-# GMTST — Sistema de Gestão de TST e Meio Ambiente
+# GestãoTST — Sistema de Gestão de TST e Meio Ambiente
 
-Sistema web completo para controle de Saúde e Segurança do Trabalho (TST) e Meio Ambiente, com gestão de certificações, licenças, taxas, documentos legais, vencimentos e planos de ação.
+Sistema web para controle de Saúde e Segurança do Trabalho (TST), Meio Ambiente, certificações, licenças, taxas, documentos legais, vencimentos e planos de ação.
+
+## Infraestrutura Oficial
+
+O GestãoTST segue o padrão oficial da NEVION:
+
+- Hostinger VPS Ubuntu
+- Docker e Docker Compose
+- PostgreSQL interno da VPS
+- Prisma ORM com migrations versionadas
+- Nginx Proxy Manager
+- SSL Let's Encrypt
+- GitHub apenas como repositório/versionamento
+
+Domínio oficial:
+
+```text
+https://gestaotst.nevion.com.br
+```
 
 ## Tecnologias
 
-- **Frontend:** Next.js 16 (App Router), React 19, Tailwind CSS v4
-- **Backend:** Next.js API Routes, Prisma ORM v7
-- **Banco de dados:** PostgreSQL 14+
-- **Autenticação:** NextAuth v5 (e-mail + senha, JWT)
-- **IA:** Claude API (Anthropic) — opcional
-- **Gráficos:** Recharts
-- **Exportação:** jsPDF, xlsx
+- Frontend: Next.js 16 (App Router), React 19, Tailwind CSS v4
+- Backend: Next.js API Routes
+- Banco de dados: PostgreSQL interno
+- ORM: Prisma v7
+- Autenticação: NextAuth v5
+- IA: Claude API (Anthropic), opcional
+- Gráficos: Recharts e ApexCharts
+- Exportação: jsPDF e xlsx
 
 ## Módulos
 
 | Módulo | Descrição |
 |--------|-----------|
-| Dashboard | Indicadores em tempo real |
-| Empresas e Unidades | Cadastro completo |
-| Colaboradores | Dados e vínculos |
-| TST | EPIs, ASOs, Treinamentos, Acidentes, Inspeções |
-| Meio Ambiente | Licenças, Resíduos, Produtos Químicos, Relatórios |
-| Certificações | ISO 14001, ISO 45001, AVCB, etc. |
-| Taxas | IBAMA, CETESB, municipais, etc. |
-| Documentos Legais | PGR, PCMSO, LTCAT, Laudos, etc. |
-| Pendências | Plano de ação com prioridades |
-| Relatórios | PDF e Excel |
-| Agente de IA | Assistente inteligente |
-| Controle de Acesso | Perfis e permissões |
+| Dashboard | Indicadores executivos e vencimentos |
+| Empresas e Unidades | Cadastro e visão operacional |
+| Colaboradores | Dados ocupacionais e vínculos |
+| SST | PGR, PCMSO, LTCAT, PPP, ASO, EPI, treinamentos, acidentes, inspeções e AVCB |
+| Meio Ambiente | Licenças, condicionantes, IBAMA/CTF/RAPP, resíduos, produtos químicos e monitoramentos |
+| Certificações | Gestão de certificações e vencimentos |
+| Taxas | Controle de taxas e pagamentos |
+| Documentos Legais | Controle de documentos legais e anexos |
+| Pendências | Plano de ação com prioridades e responsáveis |
+| Relatórios | Exportação PDF e Excel |
+| Auditoria | Histórico de eventos do sistema |
+| Administração | Usuários e perfis |
 
-## Pré-requisitos
+## Estrutura Local
 
-- Node.js 18+
-- PostgreSQL 14+
-- npm 9+
-
----
-
-## Instalação e primeira execução
-
-### 1. Crie o banco de dados no PostgreSQL
-
-```sql
-CREATE DATABASE gmtst;
+```text
+D:\Projetos\GestaoTST
+├── prisma
+├── public
+├── scripts
+├── src
+├── package.json
+├── package-lock.json
+├── prisma.config.ts
+└── README.md
 ```
 
-### 2. Configure a variável de ambiente
+## Estrutura De Produção
 
-Edite o arquivo `.env` na raiz do projeto (`D:\projetos\GMTST\.env`):
+```text
+/opt/njsistemas/apps/gestaotst
+├── source
+├── logs
+├── storage
+├── backups
+├── prisma
+├── Dockerfile
+├── docker-compose.prod.yml
+└── .env
+```
+
+## Variáveis Principais
+
+Os exemplos oficiais ficam em `.env.example` e `.env.production.example`.
+
+Valores esperados em produção:
 
 ```env
-DATABASE_URL="postgresql://postgres:SUA_SENHA@localhost:5432/gmtst"
-
-NEXTAUTH_SECRET="gmtst-secret-key-change-in-production-2024"
-NEXTAUTH_URL="http://localhost:3000"
-AUTH_SECRET="gmtst-secret-key-change-in-production-2024"
-
-# Opcional — necessário para o Agente de IA
-ANTHROPIC_API_KEY=""
+NEXTAUTH_URL=https://gestaotst.nevion.com.br
+AUTH_URL=https://gestaotst.nevion.com.br
+NEXT_PUBLIC_APP_URL=https://gestaotst.nevion.com.br
+NEXT_PUBLIC_APP_NAME=GestãoTST
+MAIL_FROM=GestãoTST <noreply@nevion.com.br>
+DATABASE_URL=postgresql://gestaotst_user:SENHA_FORTE@njsistemas-postgres:5432/gestaotst_prod?schema=public
+DIRECT_URL=postgresql://gestaotst_user:SENHA_FORTE@njsistemas-postgres:5432/gestaotst_prod?schema=public
 ```
 
-### 3. Acesse a pasta do projeto
+## Comandos Locais
 
 ```powershell
-cd D:\projetos\GMTST
+npm install
+npm run lint
+npx tsc --noEmit
+npm run build
+npx prisma validate
+npx prisma generate
 ```
 
-### 4. Aplique o schema ao banco de dados
+## Deploy
 
-```powershell
-npx prisma db push --url="postgresql://postgres:SUA_SENHA@localhost:5432/gmtst"
+O deploy oficial deve ser feito exclusivamente via Docker na VPS da NEVION.
+
+Em produção, aplicar banco somente com:
+
+```bash
+npx prisma migrate deploy
 ```
 
-### 5. Popule o banco com dados iniciais (seed)
+Nunca usar em produção:
 
-O seed cria automaticamente o usuário administrador e dados de exemplo:
-
-```powershell
-npx prisma db seed
+```bash
+prisma db push
+prisma migrate reset
 ```
 
-> **O seed é idempotente** — pode ser executado várias vezes sem duplicar dados.  
-> Usuários, EPIs e acidentes usam `upsert`; registros com `createMany` usam `skipDuplicates: true`.
+## Credenciais Iniciais
 
-### 6. Inicie o servidor
+As credenciais iniciais são criadas pelo seed/setup conforme configuração segura do ambiente.
 
-```powershell
-npm run dev
-```
+Após o primeiro acesso, a senha inicial deve ser alterada imediatamente.
 
-Acesse: **http://localhost:3000**
+## Notas Técnicas
 
----
-
-## Credenciais de acesso (criadas pelo seed)
-
-| E-mail | Senha | Perfil |
-|--------|-------|--------|
-| admin@gmtst.com | admin123 | Administrador |
-| analista@gmtst.com | analista123 | Analista TST |
-
----
-
-## Estrutura do Projeto
-
-```
-D:\projetos\GMTST\
-├── prisma/
-│   ├── schema.prisma       # Schema do banco de dados
-│   └── seed.ts             # Dados iniciais + usuário admin
-├── src/
-│   ├── app/
-│   │   ├── (auth)/login/   # Página de login
-│   │   ├── (protected)/    # Páginas protegidas (requerem login)
-│   │   │   ├── dashboard/
-│   │   │   ├── empresas/
-│   │   │   ├── colaboradores/
-│   │   │   ├── tst/        # EPIs · ASOs · Treinamentos · Acidentes · Inspeções
-│   │   │   ├── meio-ambiente/ # Licenças · Resíduos · Produtos · Relatórios
-│   │   │   ├── certificacoes/
-│   │   │   ├── taxas/
-│   │   │   ├── documentos/
-│   │   │   ├── pendencias/
-│   │   │   ├── relatorios/
-│   │   │   ├── agente-ia/
-│   │   │   └── admin/usuarios/
-│   │   └── api/
-│   │       ├── auth/       # NextAuth handlers
-│   │       ├── agente/     # Agente de IA (Claude)
-│   │       └── setup/      # Criação manual do admin (apoio)
-│   ├── components/
-│   │   ├── layout/         # Sidebar, Header, PageHeader
-│   │   └── ui/             # Componentes reutilizáveis
-│   ├── lib/
-│   │   ├── auth.ts         # Configuração NextAuth (JWT + Credentials)
-│   │   ├── prisma.ts       # Cliente Prisma com PrismaPg adapter
-│   │   └── utils.ts        # Utilitários de formatação
-│   └── proxy.ts            # Proteção de rotas (Next.js 16)
-├── .env                    # Variáveis de ambiente
-├── prisma.config.ts        # Configuração do Prisma v7
-└── package.json
-```
-
----
-
-## Comandos úteis
-
-```powershell
-npm run dev                 # Servidor de desenvolvimento (porta 3000)
-npm run build               # Build de produção
-npm run start               # Servidor de produção
-npx prisma db seed          # Rodar seed (cria admin + dados de exemplo)
-npx prisma studio           # Interface visual do banco
-npx prisma generate         # Regenerar Prisma Client
-```
-
----
-
-## Rota de apoio: /api/setup
-
-A rota `GET /api/setup` cria ou corrige o usuário administrador diretamente no banco, sem precisar rodar o seed. Use apenas se o seed não puder ser executado:
-
-```
-http://localhost:3000/api/setup
-```
-
----
-
-## Agente de IA
-
-O módulo usa a API da Anthropic (Claude Haiku). Para ativar:
-
-1. Acesse [console.anthropic.com](https://console.anthropic.com) e gere uma API Key
-2. Adicione ao `.env`: `ANTHROPIC_API_KEY="sk-ant-..."`
-
-Sem a API Key, o sistema usa respostas automáticas baseadas nos dados reais do banco.
-
----
-
-## Perfis de acesso
-
-| Perfil | Nível |
-|--------|-------|
-| Administrador | Acesso total |
-| Gerente | Leitura e escrita em todos os módulos |
-| Coordenador | Leitura e escrita por área |
-| Analista TST | TST e Colaboradores |
-| Analista Meio Ambiente | Meio Ambiente |
-| Consulta | Somente leitura |
-
----
-
-## Notas técnicas
-
-- **Prisma v7**: usa `PrismaPg` adapter — o `DATABASE_URL` não fica mais no `datasource` do schema, mas é lido via `process.env.DATABASE_URL` no adapter.
-- **NextAuth v5**: autenticação por JWT + Credentials sem `PrismaAdapter` (incompatível com essa combinação).
-- **Next.js 16**: proteção de rotas usa `src/proxy.ts` (renomeado de `middleware.ts`).
+- O Prisma Client é gerado com `npx prisma generate`.
+- O projeto deve manter migrations versionadas antes do deploy.
+- O Nginx Proxy Manager deve expor apenas `gestaotst.nevion.com.br`.
+- Não há compatibilidade oficial com domínio antigo.

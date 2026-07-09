@@ -9,8 +9,8 @@ import bcrypt from 'bcryptjs'
 const connectionString = process.env.DATABASE_URL
 if (!connectionString) {
   console.error('\n❌ DATABASE_URL não definida.')
-  console.error('   Configure o arquivo .env com a URL do seu banco PostgreSQL (local ou Supabase).')
-  console.error('   Exemplo: DATABASE_URL="postgresql://postgres:senha@localhost:5432/gmtst"\n')
+  console.error('   Configure o arquivo .env com a URL do PostgreSQL interno da NEVION.')
+  console.error('   Exemplo: DATABASE_URL="postgresql://gestaotst_user:senha@njsistemas-postgres:5432/gestaotst_prod?schema=public"\n')
   process.exit(1)
 }
 
@@ -19,36 +19,87 @@ const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter } as any)
 
 async function main() {
-  console.log('🌱 Iniciando seed do GMTST...')
+  console.log('🌱 Iniciando seed do GestãoTST...')
+
+  // ── Perfis de Acesso ────────────────────────────────────────────────────────
+  const TODAS_PERMISSOES = [
+    'CADASTROS_EMPRESAS', 'CADASTROS_COLABORADORES',
+    'SST_PGR', 'SST_PCMSO', 'SST_LTCAT', 'SST_EPIS', 'SST_TREINAMENTOS', 'SST_AVCB',
+    'MA_LICENCAS', 'MA_CONDICIONANTES', 'MA_IBAMA', 'MA_RESIDUOS', 'MA_RECURSOS_HIDRICOS', 'MA_PRODUTOS_QUIMICOS', 'MA_MONITORAMENTOS',
+    'COMPLIANCE_CERTIFICACOES', 'COMPLIANCE_TAXAS', 'COMPLIANCE_DOCUMENTOS',
+    'GESTAO_PENDENCIAS', 'GESTAO_RELATORIOS', 'GESTAO_AUDITORIA',
+  ]
+
+  const perfilAdmin = await prisma.perfil.upsert({
+    where: { nome: 'Administrador' },
+    update: {},
+    create: {
+      nome: 'Administrador',
+      descricao: 'Acesso total a todos os módulos do sistema',
+      permissoes: TODAS_PERMISSOES,
+      ativo: true,
+    },
+  })
+
+  const perfilAnalista = await prisma.perfil.upsert({
+    where: { nome: 'Analista' },
+    update: {},
+    create: {
+      nome: 'Analista',
+      descricao: 'Acesso operacional aos módulos de SST e Meio Ambiente',
+      permissoes: [
+        'CADASTROS_EMPRESAS', 'CADASTROS_COLABORADORES',
+        'SST_PGR', 'SST_PCMSO', 'SST_LTCAT', 'SST_EPIS', 'SST_TREINAMENTOS', 'SST_AVCB',
+        'MA_LICENCAS', 'MA_CONDICIONANTES', 'MA_IBAMA', 'MA_RESIDUOS', 'MA_RECURSOS_HIDRICOS', 'MA_PRODUTOS_QUIMICOS', 'MA_MONITORAMENTOS',
+        'GESTAO_PENDENCIAS', 'GESTAO_RELATORIOS',
+      ],
+      ativo: true,
+    },
+  })
+
+  const perfilTecnico = await prisma.perfil.upsert({
+    where: { nome: 'Técnico' },
+    update: {},
+    create: {
+      nome: 'Técnico',
+      descricao: 'Acesso restrito à operação de campo (EPIs, treinamentos, AVCB)',
+      permissoes: ['SST_EPIS', 'SST_TREINAMENTOS', 'SST_AVCB', 'GESTAO_PENDENCIAS'],
+      ativo: true,
+    },
+  })
+
+  console.log('✅ Perfis de acesso criados/atualizados (Administrador, Analista, Técnico)')
 
   // ── Usuários ─────────────────────────────────────────────────────────────
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@gmtst.com' },
-    update: { role: 'ADMINISTRADOR', ativo: true },
+    where: { email: 'admin@gestaotst.com.br' },
+    update: { role: 'ADMINISTRADOR', ativo: true, perfilId: perfilAdmin.id },
     create: {
       name: 'Administrador',
-      email: 'admin@gmtst.com',
+      email: 'admin@gestaotst.com.br',
       password: await bcrypt.hash('admin123', 12),
       role: 'ADMINISTRADOR',
+      perfilId: perfilAdmin.id,
       ativo: true,
     },
   })
 
   const analista = await prisma.user.upsert({
-    where: { email: 'analista@gmtst.com' },
-    update: {},
+    where: { email: 'analista@gestaotst.com.br' },
+    update: { perfilId: perfilAnalista.id },
     create: {
       name: 'Ana Silva',
-      email: 'analista@gmtst.com',
+      email: 'analista@gestaotst.com.br',
       password: await bcrypt.hash('analista123', 12),
       role: 'ANALISTA_TST',
+      perfilId: perfilAnalista.id,
       ativo: true,
     },
   })
 
   console.log('✅ Usuários criados/atualizados')
-  console.log('   → admin@gmtst.com / admin123')
-  console.log('   → analista@gmtst.com / analista123')
+  console.log('   → admin@gestaotst.com.br / admin123 (Perfil: Administrador)')
+  console.log('   → analista@gestaotst.com.br / analista123 (Perfil: Analista)')
 
   // ── Empresas ──────────────────────────────────────────────────────────────
   const empresa1 = await prisma.empresa.upsert({
@@ -548,8 +599,8 @@ async function main() {
   console.log('\n🎉 Seed concluído com sucesso!')
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   console.log('   Credenciais de acesso:')
-  console.log('   Admin:    admin@gmtst.com / admin123')
-  console.log('   Analista: analista@gmtst.com / analista123')
+  console.log('   Admin:    admin@gestaotst.com.br / admin123')
+  console.log('   Analista: analista@gestaotst.com.br / analista123')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
 }
 

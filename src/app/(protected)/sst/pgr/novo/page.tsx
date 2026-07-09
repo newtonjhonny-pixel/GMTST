@@ -1,11 +1,21 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { DocumentManager, DocumentManagerHandle } from '@/components/anexos/DocumentManager'
 
 interface Empresa { id: string; razaoSocial: string }
 interface Unidade { id: string; nome: string; empresaId: string }
+
+const TIPOS_DOCUMENTO_PGR = [
+  'PGR assinado',
+  'Inventário de riscos',
+  'Plano de ação',
+  'ART',
+  'Evidência',
+  'Outros',
+]
 
 export default function NovoPgrPage() {
   const router = useRouter()
@@ -14,6 +24,7 @@ export default function NovoPgrPage() {
   const [empresaId, setEmpresaId] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const docsRef = useRef<DocumentManagerHandle>(null)
 
   useEffect(() => {
     fetch('/api/empresas').then(r => r.json()).then(setEmpresas)
@@ -42,8 +53,15 @@ export default function NovoPgrPage() {
     }
     try {
       const res = await fetch('/api/sst/pgr', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Erro ao salvar'); setSaving(false); return }
-      router.push('/sst/pgr')
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Erro ao salvar'); setSaving(false); return }
+
+      if (docsRef.current?.hasPending()) {
+        const ok = await docsRef.current.commitPendingUploads(data.id)
+        if (!ok) setError('PGR salvo, mas houve falha ao enviar um ou mais documentos. Você pode tentar novamente na tela do PGR.')
+      }
+
+      router.push(`/sst/pgr/${data.id}`)
       router.refresh()
     } catch { setError('Erro de conexão'); setSaving(false) }
   }
@@ -125,6 +143,10 @@ export default function NovoPgrPage() {
           </button>
         </div>
       </form>
+
+      <div className="mt-4">
+        <DocumentManager ref={docsRef} entidade="PGR" tipos={TIPOS_DOCUMENTO_PGR} titulo="Documentos do PGR" />
+      </div>
     </div>
   )
 }

@@ -27,6 +27,7 @@ const COLS = [
   { key: 'prazo', label: 'Prazo', width: '100px' },
   { key: 'responsavel', label: 'Responsável' },
   { key: 'status', label: 'Status', width: '110px' },
+  { key: 'acoes', label: '', width: '50px' },
 ]
 
 export default async function CondicionantesPage() {
@@ -84,6 +85,9 @@ export default async function CondicionantesPage() {
               </Td>
               <Td muted>{c.responsavel ?? '—'}</Td>
               <Td><Pill color={ss.text} bg={ss.bg}>{ss.label}</Pill></Td>
+              <Td>
+                <Link href={`/meio-ambiente/condicionantes/${c.id}`} className="text-[11px] font-semibold" style={{ color: 'var(--brand-from)' }}>Ver</Link>
+              </Td>
             </Tr>
           )
         })}

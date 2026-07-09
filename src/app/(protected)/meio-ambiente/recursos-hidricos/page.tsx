@@ -27,6 +27,7 @@ const COLS = [
   { key: 'orgao',     label: 'Órgão Outorgante' },
   { key: 'vazao',     label: 'Vazão',          width: '100px', align: 'center' as const },
   { key: 'vencimento',label: 'Vencimento' },
+  { key: 'acoes',     label: '', width: '50px' },
 ]
 
 export default async function RecursosHidricosPage() {
@@ -81,6 +82,9 @@ export default async function RecursosHidricosPage() {
                       ? <Pill color="#d97706" bg="#fffbeb">{fmt(r.vencimento)} ({dias}d)</Pill>
                       : <Pill color="#16a34a" bg="#f0fdf4">{fmt(r.vencimento)}</Pill>
                 }
+              </Td>
+              <Td>
+                <Link href={`/meio-ambiente/recursos-hidricos/${r.id}`} className="text-[11px] font-semibold" style={{ color: 'var(--brand-from)' }}>Ver</Link>
               </Td>
             </Tr>
           )

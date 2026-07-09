@@ -118,7 +118,7 @@ export default async function RelatorioMAPage({ searchParams }: { searchParams: 
 
       <div className="print:block hidden mb-4">
         <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Relatório de Indicadores Meio Ambiente — {ano}</h1>
-        <p style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Gerado em {new Date().toLocaleDateString('pt-BR')} · GMTST</p>
+        <p style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Gerado em {new Date().toLocaleDateString('pt-BR')} · GestãoTST</p>
       </div>
 
       <Secao title="Licenças Ambientais">

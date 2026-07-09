@@ -20,9 +20,13 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     <SessionProvider session={session}>
       <ThemeProvider>
         <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-app)' }}>
-          <Sidebar pendenciasCount={pendenciasCount} />
+          <div className="no-print shrink-0 h-screen">
+            <Sidebar pendenciasCount={pendenciasCount} />
+          </div>
           <div className="flex flex-1 flex-col overflow-hidden min-w-0">
-            <Header />
+            <div className="no-print shrink-0">
+              <Header />
+            </div>
             <main className="flex-1 overflow-y-auto" style={{ padding: '20px 24px' }}>
               {children}
             </main>

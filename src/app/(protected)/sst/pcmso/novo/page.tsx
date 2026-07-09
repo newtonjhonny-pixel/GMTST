@@ -1,11 +1,20 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { DocumentManager, DocumentManagerHandle } from '@/components/anexos/DocumentManager'
 
 interface Empresa { id: string; razaoSocial: string }
 interface Unidade { id: string; nome: string; empresaId: string }
+
+const TIPOS_DOCUMENTO_PCMSO = [
+  'PCMSO assinado',
+  'Cronograma anual',
+  'Relatório médico',
+  'Evidência',
+  'Outros',
+]
 
 export default function NovoPcmsoPage() {
   const router = useRouter()
@@ -14,6 +23,7 @@ export default function NovoPcmsoPage() {
   const [empresaId, setEmpresaId] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const docsRef = useRef<DocumentManagerHandle>(null)
 
   useEffect(() => { fetch('/api/empresas').then(r => r.json()).then(setEmpresas) }, [])
   useEffect(() => {
@@ -39,8 +49,15 @@ export default function NovoPcmsoPage() {
     }
     try {
       const res = await fetch('/api/sst/pcmso', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Erro ao salvar'); setSaving(false); return }
-      router.push('/sst/pcmso')
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Erro ao salvar'); setSaving(false); return }
+
+      if (docsRef.current?.hasPending()) {
+        const ok = await docsRef.current.commitPendingUploads(data.id)
+        if (!ok) setError('PCMSO salvo, mas houve falha ao enviar um ou mais documentos. Você pode tentar novamente na tela do PCMSO.')
+      }
+
+      router.push(`/sst/pcmso/${data.id}`)
       router.refresh()
     } catch { setError('Erro de conexão'); setSaving(false) }
   }
@@ -122,6 +139,10 @@ export default function NovoPcmsoPage() {
           </button>
         </div>
       </form>
+
+      <div className="mt-4">
+        <DocumentManager ref={docsRef} entidade="PCMSO" tipos={TIPOS_DOCUMENTO_PCMSO} titulo="Documentos do PCMSO" />
+      </div>
     </div>
   )
 }

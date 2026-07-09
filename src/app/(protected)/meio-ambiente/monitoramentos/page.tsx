@@ -40,6 +40,7 @@ const COLS = [
   { key: 'conformidade', label: 'Conform.', width: '90px' },
   { key: 'coleta', label: 'Coleta', width: '100px' },
   { key: 'proxima', label: 'Próxima', width: '100px' },
+  { key: 'acoes', label: '', width: '50px' },
 ]
 
 export default async function MonitoramentosPage() {
@@ -101,6 +102,9 @@ export default async function MonitoramentosPage() {
                   {fmt(item.dataProxima)}
                   {vencendo && dias !== null && <span style={{ fontSize: 10, marginLeft: 4 }}>({dias}d)</span>}
                 </span>
+              </Td>
+              <Td>
+                <Link href={`/meio-ambiente/monitoramentos/${item.id}`} className="text-[11px] font-semibold" style={{ color: 'var(--brand-from)' }}>Ver</Link>
               </Td>
             </Tr>
           )

@@ -29,6 +29,7 @@ const COLS = [
   { key: 'inicio',   label: 'Vigência Inicial', width: '120px' },
   { key: 'fim',      label: 'Vigência Final',   width: '120px' },
   { key: 'status',   label: 'Status',  width: '100px' },
+  { key: 'acoes',    label: '',        width: '50px' },
 ]
 
 export default async function PcmsoPage() {
@@ -88,6 +89,15 @@ export default async function PcmsoPage() {
                 ) : <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>—</span>}
               </Td>
               <Td><Pill color={ss.text} bg={ss.bg}>{ss.label}</Pill></Td>
+              <Td>
+                <Link
+                  href={`/sst/pcmso/${p.id}`}
+                  className="text-[11px] font-semibold"
+                  style={{ color: 'var(--brand-from)' }}
+                >
+                  Ver
+                </Link>
+              </Td>
             </Tr>
           )
         })}

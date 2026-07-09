@@ -30,6 +30,7 @@ const COLS = [
   { key: 'vigencia',  label: 'Vigência', width: '110px' },
   { key: 'agentes',   label: 'Agentes Nocivos' },
   { key: 'status',    label: 'Status',  width: '100px' },
+  { key: 'acoes',     label: '',        width: '50px' },
 ]
 
 export default async function LtcatPage() {
@@ -100,6 +101,15 @@ export default async function LtcatPage() {
                 </div>
               </Td>
               <Td><Pill color={ss.text} bg={ss.bg}>{ss.label}</Pill></Td>
+              <Td>
+                <Link
+                  href={`/sst/ltcat/${l.id}`}
+                  className="text-[11px] font-semibold"
+                  style={{ color: 'var(--brand-from)' }}
+                >
+                  Ver
+                </Link>
+              </Td>
             </Tr>
           )
         })}
