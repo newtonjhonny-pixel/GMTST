@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "EstoqueEPI" ADD COLUMN "motivo" TEXT,
+ADD COLUMN "fichaId" TEXT,
+ADD COLUMN "entregaEpiId" TEXT,
+ADD COLUMN "usuarioId" TEXT,
+ADD COLUMN "ativo" BOOLEAN NOT NULL DEFAULT true;
