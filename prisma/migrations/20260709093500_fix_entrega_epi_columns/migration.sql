@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "EntregaEPI" ADD COLUMN "fichaId" TEXT,
+ADD COLUMN "quantidadeDevolvida" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "ativo" BOOLEAN NOT NULL DEFAULT true;
